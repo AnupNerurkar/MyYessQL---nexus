@@ -33,25 +33,25 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .geometric-overlay {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230A1628' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         .tab-active { border-bottom: 2px solid #0A1628; color: #0A1628; font-weight: 700; }
         .tab-inactive { color: #64748B; }
     </style>
 </head>
-<body class="bg-primary-navy min-h-screen flex items-center justify-center relative overflow-hidden">
+<body class="bg-slate-50 min-h-screen flex items-center justify-center relative overflow-hidden">
     <!-- Background Texture -->
     <div class="absolute inset-0 geometric-overlay pointer-events-none"></div>
     
     <main class="relative z-10 w-full max-w-[480px] px-6">
         <!-- Brand Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold tracking-tighter text-white mb-2">Nexus</h1>
-            <p class="text-[10px] uppercase tracking-[0.3em] font-medium text-white/60">The Automated Clearance Protocol</p>
+            <h1 class="text-4xl font-extrabold tracking-tighter text-primary-navy mb-2">Nexus</h1>
+            <p class="text-[10px] uppercase tracking-[0.3em] font-medium text-primary-navy/40">The Automated Clearance Protocol</p>
         </div>
 
         <!-- Main Auth Card -->
-        <div class="bg-white rounded-lg shadow-[0_24px_60px_rgba(0,0,0,0.4)] overflow-hidden">
+        <div class="bg-white rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-border-gray overflow-hidden">
             <!-- Tabs -->
             <div class="flex border-b border-border-gray">
                 <button id="tab-login" class="flex-1 py-4 text-sm uppercase tracking-widest tab-active" onclick="switchTab('login')">Login</button>
@@ -129,7 +129,7 @@
         </div>
 
         <div class="mt-8 text-center px-4">
-            <p class="text-[10px] text-white/40 uppercase tracking-[0.25em] font-medium leading-relaxed">
+            <p class="text-[10px] text-primary-navy/40 uppercase tracking-[0.25em] font-medium leading-relaxed">
                 © 2024 Nexus Institutional Ledger. All Rights Reserved.<br/>
                 Secure Environment • Authorized Personnel Only
             </p>

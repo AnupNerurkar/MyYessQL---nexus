@@ -119,17 +119,17 @@
 <body class="min-h-screen bg-slate">
 
     <!-- ─── NAV ──────────────────────────────────────────────────── -->
-    <header class="bg-navy sticky top-0 z-40 shadow-md">
+    <header class="bg-white sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)] border-b border-border">
         <div class="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between">
             <div>
-                <span class="text-white text-xl font-extrabold tracking-tighter">Nexus</span>
-                <span class="ml-2 text-white/40 text-[10px] uppercase tracking-widest hidden sm:inline">Clearance
+                <span class="text-navy text-xl font-extrabold tracking-tighter">Nexus</span>
+                <span class="ml-2 text-text-muted text-[10px] uppercase tracking-widest hidden sm:inline">Clearance
                     Portal</span>
             </div>
             <div class="flex items-center gap-4">
-                <span id="nav-user" class="text-white/70 text-sm font-medium"></span>
+                <span id="nav-user" class="text-text-main text-sm font-medium"></span>
                 <button id="logout-btn" onclick="logout()"
-                    class="text-white/60 hover:text-white text-xs uppercase tracking-widest font-bold px-3 py-1.5 rounded-nexus border border-white/20 hover:border-white/60 transition-all">Sign
+                    class="text-text-muted hover:text-navy text-xs uppercase tracking-widest font-bold px-3 py-1.5 rounded-nexus border border-border hover:border-navy transition-all">Sign
                     Out</button>
             </div>
         </div>
@@ -171,7 +171,7 @@
                 </div>
 
                 <!-- Status Card -->
-                <div id="heatmap-card" class="bg-white rounded-card border border-border p-6 space-y-5">
+                <div id="heatmap-card" class="bg-white rounded-card border border-border p-6 space-y-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xs font-bold uppercase tracking-widest text-text-muted">Live Status Heatmap</h2>
                         <span id="overall-pill" class="pill pill-draft">—</span>
@@ -195,7 +195,7 @@
 
                 <!-- No request yet -->
                 <div id="no-request-card"
-                    class="hidden bg-white rounded-card border border-border p-6 text-center space-y-4">
+                    class="hidden bg-white rounded-card border border-border p-6 text-center space-y-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                     <p class="text-text-muted text-sm">You haven't started a clearance request yet.</p>
                     <button onclick="startRequest()"
                         class="bg-navy text-white px-6 py-2.5 rounded-nexus text-sm font-semibold hover:opacity-90 transition">Start
@@ -233,7 +233,7 @@
                 <!-- APPLICATION FORM (Conditional) -->
                 <div id="form-panel" class="hidden">
                     <form id="details-form" onsubmit="saveDetails(event)"
-                        class="bg-white rounded-card border border-border p-6 space-y-5">
+                        class="bg-white rounded-card border border-border p-6 space-y-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                         <h2 class="text-xs font-bold uppercase tracking-widest text-text-muted">Application Protocol</h2>
 
                         <!-- Department -->
@@ -287,7 +287,7 @@
         </div><!-- /grid -->
 
         <!-- ─── DUES TABLE ─────────────────────────────────────── -->
-        <section id="dues-section" class="hidden bg-white rounded-card border border-border overflow-hidden">
+        <section id="dues-section" class="hidden bg-white rounded-card border border-border overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <div class="px-6 py-4 border-b border-border flex items-center justify-between">
                 <h2 class="text-xs font-bold uppercase tracking-widest text-text-muted">Outstanding Dues Ledger</h2>
                 <a href="/receipts" class="text-xs font-semibold text-accent hover:underline">View All Receipts →</a>

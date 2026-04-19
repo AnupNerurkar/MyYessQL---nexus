@@ -34,18 +34,18 @@
 <body class="min-h-screen bg-slate">
 
 <!-- ─── NAV ─────────────────────────────────────────────── -->
-<header class="bg-navy sticky top-0 z-40 shadow-md">
+<header class="bg-white sticky top-0 z-40 shadow-[0_1px_10px_rgba(0,0,0,0.05)] border-b border-border">
     <div class="max-w-screen-lg mx-auto px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-6">
-            <span class="text-white text-xl font-extrabold tracking-tighter">Nexus</span>
-            <a href="/dashboard" class="text-white/60 hover:text-white text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors">
+            <span class="text-navy text-xl font-extrabold tracking-tighter">Nexus</span>
+            <a href="/dashboard" class="text-text-muted hover:text-navy text-xs font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
                 </svg>
                 Back to Dashboard
             </a>
         </div>
-        <span id="nav-user" class="text-white/60 text-sm font-medium"></span>
+        <span id="nav-user" class="text-text-muted text-sm font-medium"></span>
     </div>
 </header>
 
@@ -65,7 +65,7 @@
     <div id="loading" class="text-center py-16 text-text-muted text-sm">Loading receipts…</div>
 
     <!-- Table Card -->
-    <div id="table-card" class="hidden bg-white rounded-card border border-border overflow-hidden shadow-sm">
+    <div id="table-card" class="hidden bg-white rounded-card border border-border overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
@@ -84,7 +84,7 @@
 
     <!-- Empty State -->
     <div id="empty-state" class="hidden">
-        <div class="bg-white rounded-card border border-border py-20 flex flex-col items-center gap-4 shadow-sm">
+        <div class="bg-white rounded-card border border-border py-20 flex flex-col items-center gap-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <!-- Receipt icon -->
             <svg class="w-12 h-12 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>

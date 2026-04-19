@@ -20,45 +20,45 @@
 <body class="bg-slate min-h-screen flex">
 
 <!-- ═══ SIDEBAR ════════════════════════════════════════════ -->
-<aside class="w-[240px] min-h-screen bg-navy flex flex-col shrink-0 sticky top-0 h-screen">
-    <div class="px-6 pt-8 pb-6 border-b border-white/10">
-        <p class="text-white text-xl font-extrabold tracking-tighter">Nexus</p>
-        <p class="text-white/40 text-[9px] uppercase tracking-[0.25em] mt-0.5">Clearance Portal</p>
+<aside class="w-[240px] min-h-screen bg-white border-r border-border flex flex-col shrink-0 sticky top-0 h-screen">
+    <div class="px-6 pt-8 pb-6 border-b border-border">
+        <p class="text-navy text-xl font-extrabold tracking-tighter">Nexus</p>
+        <p class="text-text-muted text-[9px] uppercase tracking-[0.25em] mt-0.5">Clearance Portal</p>
     </div>
-    <div class="px-6 py-5 border-b border-white/10">
-        <p id="sidebar-name" class="text-white text-sm font-semibold truncate">—</p>
-        <p class="text-white/50 text-[11px] uppercase tracking-widest mt-0.5">Librarian</p>
+    <div class="px-6 py-5 border-b border-border">
+        <p id="sidebar-name" class="text-navy text-sm font-semibold truncate">—</p>
+        <p class="text-text-muted text-[11px] uppercase tracking-widest mt-0.5">Librarian</p>
     </div>
     <nav class="flex-1 px-3 py-4 space-y-1">
         <button onclick="switchTab('upload')" id="nav-upload"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-white/90 bg-accent/20 transition">
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-accent bg-accent/10 transition">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             Upload CSV
         </button>
         <button onclick="switchTab('pending')" id="nav-pending"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-white/50 hover:bg-white/5 hover:text-white/80 transition">
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             Pending Clearance
             <span id="pending-badge" class="ml-auto bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
         </button>
         <button onclick="switchTab('stale')" id="nav-stale"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-white/50 hover:bg-white/5 hover:text-white/80 transition">
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Stale Requests
         </button>
         <button onclick="switchTab('students')" id="nav-students"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-white/50 hover:bg-white/5 hover:text-white/80 transition">
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Student Dues
         </button>
         <button onclick="switchTab('all')" id="nav-all"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-white/50 hover:bg-white/5 hover:text-white/80 transition">
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
             <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             All Dues Ledger
         </button>
     </nav>
-    <div class="px-6 py-5 border-t border-white/10">
-        <button onclick="logout()" class="text-white/40 hover:text-white/80 text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-colors">
+    <div class="px-6 py-5 border-t border-border">
+        <button onclick="logout()" class="text-text-muted hover:text-navy text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
             Sign Out
         </button>
@@ -67,7 +67,7 @@
 
 <!-- ═══ MAIN ════════════════════════════════════════════════ -->
 <div class="flex-1 flex flex-col min-h-screen">
-    <header class="bg-white border-b border-border px-8 py-4 shrink-0">
+    <header class="bg-white border-b border-border px-8 py-4 shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
         <h1 id="page-title" class="text-lg font-extrabold text-navy tracking-tight">Upload Dues CSV</h1>
         <p id="page-sub" class="text-text-muted text-xs mt-0.5">Bulk-import student dues via a formatted CSV file</p>
     </header>
@@ -213,11 +213,11 @@ function switchTab(tab) {
     tabs.forEach(t => {
         document.getElementById(`panel-${t}`).classList.add('hidden');
         const btn = document.getElementById(`nav-${t}`);
-        if (btn) btn.className = btn.className.replace('text-white/90 bg-accent/20','text-white/50 hover:bg-white/5 hover:text-white/80');
+        if (btn) btn.className = btn.className.replace('text-accent bg-accent/10','text-text-muted hover:bg-slate hover:text-navy');
     });
     show(`panel-${tab}`);
     const active = document.getElementById(`nav-${tab}`);
-    if (active) active.className = active.className.replace('text-white/50 hover:bg-white/5 hover:text-white/80','text-white/90 bg-accent/20');
+    if (active) active.className = active.className.replace('text-text-muted hover:bg-slate hover:text-navy','text-accent bg-accent/10');
 
     const titles = { 
         upload:   ['Upload Dues CSV','Bulk-import student dues via a formatted CSV file'], 
@@ -258,7 +258,7 @@ async function loadPending() {
     } else {
         data.forEach(req => {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-card border border-border p-6 flex items-center justify-between shadow-sm';
+            card.className = 'bg-white rounded-card border border-border p-6 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
             card.innerHTML = `
                 <div>
                     <p class="text-text-main font-bold text-base">${req.student_name}</p>
