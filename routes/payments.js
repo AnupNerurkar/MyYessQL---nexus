@@ -71,4 +71,40 @@ router.get('/receipts', authenticate, (req, res) => {
     res.json(receipts);
 });
 
+/**
+ * 3. Manual Payment Verification (Fallback for Webhooks)
+ * This is called by the frontend after stripe.confirmCardPayment succeeds
+ */
+router.post('/verify/:paymentIntentId', authenticate, async (req, res) => {
+    const { paymentIntentId } = req.params;
+    const studentId = req.user.id;
+
+    try {
+        const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+        if (intent.status === 'succeeded') {
+            const dueId = intent.metadata.due_id;
+            const amount = intent.amount / 100;
+
+            let updated = false;
+            db.transaction(() => {
+                const existing = db.prepare('SELECT id FROM payments WHERE transaction_ref = ?').get(intent.id);
+                if (!existing) {
+                    db.prepare('INSERT INTO payments (student_id, due_id, amount, transaction_ref) VALUES (?, ?, ?, ?)')
+                      .run(studentId, dueId, amount, intent.id);
+                    db.prepare("UPDATE dues SET status = 'paid' WHERE id = ?").run(dueId);
+                    updated = true;
+                }
+            })();
+
+            return res.json({ success: true, updated });
+        } else {
+            return res.status(400).json({ error: `Payment status: ${intent.status}` });
+        }
+    } catch (err) {
+        console.error('Manual Verification Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

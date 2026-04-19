@@ -840,10 +840,11 @@
                     btn.innerHTML = originalText;
                     btn.disabled = false;
                 } else if (result.paymentIntent.status === 'succeeded') {
-                    alert('Payment successful! Your records are being updated.');
+                    // Call manual verification as a backup to the webhook for immediate update
+                    await api(`/payments/verify/${result.paymentIntent.id}`, { method: 'POST' });
+                    alert('Payment successful! Your records have been updated.');
                     closeModal();
-                    // Small delay to let webhook finish DB update
-                    setTimeout(() => loadDashboard(), 1500);
+                    loadDashboard();
                 }
             } catch (e) {
                 console.error(e);
