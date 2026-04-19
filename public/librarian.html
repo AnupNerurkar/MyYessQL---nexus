@@ -3,198 +3,262 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Nexus | Librarian Dashboard</title>
+    <title>Nexus Librarian | Command Center</title>
+    <meta name="description" content="Nexus Unified Librarian Dashboard — manage dues and clearance artifacts."/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <script>
         tailwind.config = {
-            theme: { extend: {
-                colors: { navy:'#0A1628', accent:'#2563EB', success:'#16A34A', danger:'#DC2626', amber:'#D97706', slate:'#F8FAFC', border:'#E2E8F0', 'text-main':'#0F172A', 'text-muted':'#64748B' },
-                fontFamily: { sans: ['Inter','sans-serif'] },
-                borderRadius: { nexus:'6px', card:'8px' }
-            }}
+            theme: {
+                extend: {
+                    colors: {
+                        navy:         '#0A1628',
+                        accent:       '#2563EB',
+                        success:      '#16A34A',
+                        danger:       '#DC2626',
+                        amber:        '#D97706',
+                        slate:        '#F8FAFC',
+                        border:       '#E2E8F0',
+                        'text-main':  '#0F172A',
+                        'text-muted': '#64748B',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    borderRadius: { nexus: '6px', card: '12px' }
+                }
+            }
         }
     </script>
-    <style>body{font-family:'Inter',sans-serif;}</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .stale-pulse { border: 2px solid #FEE2E2; animation: pulse-red 2s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.1); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .request-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .request-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.08); }
+        
+        #modal-overlay { transition: opacity 0.3s ease; }
+        #modal-container { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden #modal-container { transform: scale(0.95) translateY(10px); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F1F5F9; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate min-h-screen flex">
+<body class="bg-slate min-h-screen text-text-main">
 
-<!-- ═══ SIDEBAR ════════════════════════════════════════════ -->
-<aside class="w-[240px] min-h-screen bg-white border-r border-border flex flex-col shrink-0 sticky top-0 h-screen">
-    <div class="px-6 pt-8 pb-6 border-b border-border">
-        <p class="text-navy text-xl font-extrabold tracking-tighter">Nexus</p>
-        <p class="text-text-muted text-[9px] uppercase tracking-[0.25em] mt-0.5">Clearance Portal</p>
+<nav class="glass-nav sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <div>
+                <p class="text-navy text-xl font-extrabold tracking-tighter">Nexus <span class="text-accent font-black">/</span> Librarian</p>
+                <p class="text-text-muted text-[9px] uppercase tracking-[0.25em] font-bold">Command Center</p>
+            </div>
+            <div class="hidden md:flex items-center gap-1 bg-slate border border-border p-1 rounded-nexus">
+                <button onclick="switchView('dashboard')" id="btn-view-dashboard" class="px-4 py-1.5 rounded-nexus bg-white shadow-sm text-xs font-bold text-navy transition-all">Dashboard</button>
+                <button onclick="switchView('ledger')" id="btn-view-ledger" class="px-4 py-1.5 rounded-nexus text-xs font-semibold text-text-muted hover:text-navy transition-all">Dues Ledger</button>
+                <button onclick="switchView('upload')" id="btn-view-upload" class="px-4 py-1.5 rounded-nexus text-xs font-semibold text-text-muted hover:text-navy transition-all">Import CSV</button>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-5">
+            <div class="text-right hidden sm:block">
+                <p id="nav-name" class="text-navy text-sm font-bold leading-tight">—</p>
+                <p class="text-accent text-[10px] uppercase font-black tracking-widest">Librarian</p>
+            </div>
+            <button onclick="logout()" class="p-2.5 rounded-nexus border border-border text-text-muted hover:text-danger hover:border-danger transition-all">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
     </div>
-    <div class="px-6 py-5 border-b border-border">
-        <p id="sidebar-name" class="text-navy text-sm font-semibold truncate">—</p>
-        <p class="text-text-muted text-[11px] uppercase tracking-widest mt-0.5">Librarian</p>
-    </div>
-    <nav class="flex-1 px-3 py-4 space-y-1">
-        <button onclick="switchTab('upload')" id="nav-upload"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-accent bg-accent/10 transition">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            Upload CSV
-        </button>
-        <button onclick="switchTab('pending')" id="nav-pending"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            Pending Clearance
-            <span id="pending-badge" class="ml-auto bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-        </button>
-        <button onclick="switchTab('stale')" id="nav-stale"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Stale Requests
-        </button>
-        <button onclick="switchTab('students')" id="nav-students"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Student Dues
-        </button>
-        <button onclick="switchTab('all')" id="nav-all"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-nexus text-[13px] font-semibold text-text-muted hover:bg-slate hover:text-navy transition">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            All Dues Ledger
-        </button>
-    </nav>
-    <div class="px-6 py-5 border-t border-border">
-        <button onclick="logout()" class="text-text-muted hover:text-navy text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            Sign Out
-        </button>
-    </div>
-</aside>
+</nav>
 
-<!-- ═══ MAIN ════════════════════════════════════════════════ -->
-<div class="flex-1 flex flex-col min-h-screen">
-    <header class="bg-white border-b border-border px-8 py-4 shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
-        <h1 id="page-title" class="text-lg font-extrabold text-navy tracking-tight">Upload Dues CSV</h1>
-        <p id="page-sub" class="text-text-muted text-xs mt-0.5">Bulk-import student dues via a formatted CSV file</p>
-    </header>
+<main class="max-w-7xl mx-auto px-6 py-10 space-y-12">
 
-    <main class="flex-1 px-8 py-7 space-y-6 overflow-y-auto">
-
-        <!-- ── UPLOAD TAB ──────────────────────────────────── -->
-        <div id="panel-upload" class="space-y-6">
-
-            <!-- Instructions card -->
-            <div class="bg-blue-50 border border-blue-200 rounded-card px-6 py-5 space-y-3">
-                <p class="text-accent font-bold text-sm">CSV Format Instructions</p>
-                <p class="text-accent/80 text-xs leading-relaxed">Your CSV needs just two columns — header row is required:</p>
-                <div class="font-mono text-xs bg-white border border-blue-200 rounded-nexus px-4 py-3 text-text-main">
-                    student_email, amount
+    <!-- ─── DASHBOARD VIEW ────────────────────────────────────────── -->
+    <div id="view-dashboard" class="space-y-12">
+        <!-- Analytics Hero (Fake) -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-card border border-border shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Cleared This Month</p>
+                    <span class="text-success text-xs font-bold bg-success/10 px-2 py-0.5 rounded-full">+18%</span>
                 </div>
-                <p class="text-xs text-accent/70">Example: <span class="font-mono">student@nexus.dev, 250</span></p>
-                <ul class="text-xs text-accent/70 space-y-1 list-disc list-inside">
-                    <li>Amount must be a positive number (₹)</li>
-                    <li>Students not found by email are skipped with a warning</li>
-                    <li>If an unpaid due already exists for that student, it gets updated to the new amount</li>
-                </ul>
-            </div>
-
-            <!-- Upload card -->
-            <div class="bg-white rounded-card border border-border p-6 space-y-5">
-                <p class="text-xs font-bold uppercase tracking-widest text-text-muted">Select CSV File</p>
-
-                <label id="drop-zone" class="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-card p-10 cursor-pointer hover:border-accent/40 hover:bg-accent/5 transition-colors group">
-                    <svg class="w-10 h-10 text-border group-hover:text-accent/40 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                    </svg>
-                    <div class="text-center">
-                        <p id="drop-label" class="text-text-muted text-sm font-semibold">Drop CSV here or click to browse</p>
-                        <p class="text-text-muted/60 text-xs mt-1">.csv files only</p>
+                <div class="flex items-end justify-between">
+                    <p class="text-4xl font-black text-navy tracking-tighter">482</p>
+                    <div class="flex items-center gap-0.5 h-10 items-end">
+                        <div class="w-1 bg-success/20 h-4 rounded-full"></div>
+                        <div class="w-1 bg-success/40 h-8 rounded-full"></div>
+                        <div class="w-1 bg-success/60 h-6 rounded-full"></div>
+                        <div class="w-1 bg-success h-10 rounded-full"></div>
                     </div>
-                    <input id="csv-input" type="file" accept=".csv" class="hidden" onchange="handleFileSelect(event)"/>
-                </label>
+                </div>
+                <p class="text-[11px] text-text-muted">Library accounts successfully cleared</p>
+            </div>
+            <div class="bg-white p-6 rounded-card border border-border shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Outstanding Revenue</p>
+                </div>
+                <div class="flex items-end justify-between">
+                    <p class="text-4xl font-black text-navy tracking-tighter">₹84<span class="text-xl">k</span></p>
+                    <div class="flex items-center gap-0.5 h-10 items-end">
+                        <div class="w-1 bg-amber-200 h-10 rounded-full"></div>
+                        <div class="w-1 bg-amber-400 h-7 rounded-full"></div>
+                        <div class="w-1 bg-amber-600 h-5 rounded-full"></div>
+                    </div>
+                </div>
+                <p class="text-[11px] text-text-muted">Total unpaid library dues in ledger</p>
+            </div>
+            <div class="bg-navy p-6 rounded-card shadow-xl space-y-4 relative overflow-hidden">
+                <div class="relative z-10"><p class="text-[11px] font-bold uppercase tracking-widest text-white/60">Service Load</p></div>
+                <div class="flex items-end justify-between relative z-10">
+                    <p class="text-4xl font-black text-white tracking-tighter">Low</p>
+                    <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                </div>
+                <p class="text-[11px] text-white/50 relative z-10">Pipeline is currently healthy</p>
+                <div class="absolute top-0 right-0 w-32 h-32 bg-accent/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            </div>
+        </section>
 
-                <div id="upload-result" class="hidden rounded-nexus px-4 py-3 text-sm font-semibold"></div>
+        <!-- Feed Section -->
+        <section class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-extrabold text-navy tracking-tight">Priority Action Feed</h2>
+                    <p class="text-text-muted text-xs mt-0.5">Library clearance requests requiring attention</p>
+                </div>
+                <div id="feed-count" class="text-[10px] font-black uppercase tracking-widest bg-white border border-border px-3 py-1.5 rounded-full shadow-sm">0 Items</div>
+            </div>
+            <div id="feed-container" class="space-y-4">
+                <div class="py-20 text-center space-y-3"><div class="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div></div>
+            </div>
+        </section>
+    </div>
 
-                <button id="upload-btn" onclick="uploadCSV()" disabled
-                    class="w-full bg-navy text-white py-3 rounded-nexus text-sm font-bold hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                    Import Dues
-                </button>
+    <!-- ─── LEDGER VIEW ────────────────────────────────────────────── -->
+    <div id="view-ledger" class="hidden space-y-8">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-extrabold text-navy tracking-tight">Institutional Dues Ledger</h2>
+            <div class="flex gap-2">
+                <input type="text" id="ledger-search" oninput="filterLedger()" placeholder="Search student email..." class="px-4 py-2 bg-white border border-border rounded-nexus text-sm focus:ring-4 focus:ring-accent/10 outline-none w-64"/>
+            </div>
+        </div>
+        <div class="bg-white rounded-card border border-border overflow-hidden shadow-sm">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate border-b border-border text-[10px] font-black uppercase tracking-widest text-text-muted">
+                        <th class="text-left px-8 py-4">Student</th>
+                        <th class="text-left px-8 py-4">Amount</th>
+                        <th class="text-left px-8 py-4">Description</th>
+                        <th class="text-left px-8 py-4">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ledger-body"></tbody>
+            </table>
+            <div id="ledger-loading" class="py-16 text-center text-text-muted text-sm font-medium">Synchronizing ledger...</div>
+        </div>
+    </div>
+
+    <!-- ─── UPLOAD VIEW ────────────────────────────────────────────── -->
+    <div id="view-upload" class="hidden max-w-2xl mx-auto space-y-8">
+        <div class="text-center space-y-2">
+            <h2 class="text-2xl font-black text-navy tracking-tight">Import Dues CSV</h2>
+            <p class="text-text-muted text-sm">Update student library accounts in bulk</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-card border border-border shadow-sm space-y-6">
+            <div class="bg-accent/5 border border-accent/20 rounded-nexus p-4 flex gap-4">
+                <div class="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div class="space-y-1">
+                    <p class="text-xs font-bold text-navy">CSV Format: <span class="font-mono text-accent">student_email, amount</span></p>
+                    <p class="text-[11px] text-text-muted">Header row is required. Amounts must be positive integers.</p>
+                </div>
+            </div>
+
+            <label id="drop-zone" class="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-border rounded-card p-12 cursor-pointer hover:border-accent hover:bg-accent/5 transition-all group">
+                <svg class="w-12 h-12 text-border group-hover:text-accent transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <div class="text-center">
+                    <p id="drop-label" class="text-sm font-bold text-navy">Drop CSV file here</p>
+                    <p class="text-text-muted text-[11px] mt-1">or click to browse local storage</p>
+                </div>
+                <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="handleFileSelect(event)"/>
+            </label>
+
+            <div id="upload-result" class="hidden p-4 rounded-nexus text-xs font-bold"></div>
+
+            <button id="upload-btn" onclick="uploadCSV()" disabled class="w-full bg-navy text-white py-4 rounded-nexus font-black uppercase tracking-widest text-[13px] hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-navy/20">
+                Initialize Bulk Import
+            </button>
+        </div>
+    </div>
+
+</main>
+
+<!-- ════════════════════════════════════════════════════
+     VERIFICATION MODAL
+     ════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-hidden fixed inset-0 bg-navy/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div id="modal-container" class="bg-white w-full max-w-6xl h-[85vh] rounded-card shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/80 hover:bg-white transition-colors text-text-muted shadow-sm">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        
+        <!-- Left: Preview -->
+        <div class="flex-1 bg-slate border-r border-border relative flex flex-col">
+            <div class="px-6 py-4 border-b border-border bg-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-nexus bg-navy flex items-center justify-center text-white"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+                    <p id="modal-filename" class="text-xs font-bold text-navy truncate max-w-[250px]">artifact.pdf</p>
+                </div>
+                <div id="doc-selector" class="flex gap-1"></div>
+            </div>
+            <div class="flex-1 bg-[#525659] relative">
+                <iframe id="preview-iframe" class="w-full h-full border-none hidden"></iframe>
+                <img id="preview-img" class="w-full h-full object-contain hidden" src=""/>
+                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center text-white/40 italic text-sm">No artifact selected</div>
             </div>
         </div>
 
-        <!-- ── PENDING CLEARANCE TAB ─────────────────────── -->
-        <div id="panel-pending" class="hidden space-y-6">
-            <div id="pending-loading" class="text-center py-16 text-text-muted text-sm">Loading…</div>
-            <div id="pending-list" class="space-y-5"></div>
-        </div>
-
-        <!-- ── STALE REQUESTS TAB ─────────────────────────── -->
-        <div id="panel-stale" class="hidden space-y-6">
-            <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-nexus px-4 py-3 mb-5">
-                <svg class="w-4 h-4 text-accent mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-accent text-xs font-semibold">Automatic email reminders are sent for requests stale beyond 2 minutes (Testing Mode).</p>
+        <!-- Right: Actions -->
+        <div class="w-full md:w-[380px] flex flex-col">
+            <div class="p-8 flex-1 overflow-y-auto space-y-8">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Student Identity</p>
+                    <h3 id="modal-student-name" class="text-2xl font-black text-navy leading-tight">—</h3>
+                    <p id="modal-student-email" class="text-text-muted text-sm">—</p>
+                </div>
+                <div class="space-y-4">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-text-muted">Decision Note</label>
+                    <textarea id="action-comment" rows="6" placeholder="Reason for rejection or flagging..." class="w-full px-4 py-3 bg-slate border border-border rounded-card text-sm focus:ring-4 focus:ring-accent/10 focus:border-accent outline-none resize-none transition-all"></textarea>
+                </div>
+                <div id="modal-error" class="hidden bg-danger/10 text-danger text-[11px] font-bold p-3 rounded-nexus border border-danger/20"></div>
             </div>
-            <div class="bg-white rounded-card border border-border overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-slate border-b border-border">
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Student Name</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Stale Since</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Reminders</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Last Nudge</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stale-body"></tbody>
-                </table>
-                <div id="stale-empty" class="hidden py-12 text-center text-text-muted text-sm">No stale requests — pipeline is flowing.</div>
+            <div class="p-6 bg-slate/50 border-t border-border space-y-3">
+                <div class="flex gap-3">
+                    <button id="btn-delete" onclick="submitAction('flagged')" class="flex-1 bg-white border border-danger text-danger py-3.5 rounded-nexus text-[11px] font-black uppercase tracking-widest hover:bg-danger hover:text-white transition-all">Flag / Reject</button>
+                    <button id="btn-approve" onclick="submitAction('approved')" class="flex-1 bg-navy text-white py-3.5 rounded-nexus text-[11px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg shadow-navy/20 transition-all">Approve</button>
+                </div>
             </div>
         </div>
-
-        <!-- ── STUDENTS TAB ───────────────────────────────── -->
-        <div id="panel-students" class="hidden">
-            <div id="students-loading" class="text-center py-16 text-text-muted text-sm">Loading…</div>
-            <div id="students-table" class="hidden bg-white rounded-card border border-border overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-slate border-b border-border">
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Student</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Email</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Unpaid Dues</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Total Owed</th>
-                        </tr>
-                    </thead>
-                    <tbody id="students-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ── ALL DUES TAB ──────────────────────────────── -->
-        <div id="panel-all" class="hidden">
-            <div id="all-loading" class="text-center py-16 text-text-muted text-sm">Loading…</div>
-            <div id="all-table" class="hidden bg-white rounded-card border border-border overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-slate border-b border-border">
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Student</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Department</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Amount</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Description</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="all-body"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
+    </div>
 </div>
 
 <script>
-// ─── Auth ───────────────────────────────────────────────────────
+// ─── AUTH & STATE ────────────────────────────────────────────────
 const TOKEN = sessionStorage.getItem('nexus_token') || localStorage.getItem('nexus_token');
 const USER  = JSON.parse(sessionStorage.getItem('nexus_user') || localStorage.getItem('nexus_user') || 'null');
 
-if (TOKEN) { localStorage.setItem('nexus_token', TOKEN); sessionStorage.setItem('nexus_token', TOKEN); }
-if (USER)  { localStorage.setItem('nexus_user', JSON.stringify(USER)); sessionStorage.setItem('nexus_user', JSON.stringify(USER)); }
-
-if (!TOKEN || !USER || USER.role !== 'librarian') { window.location.href = '/'; }
-
-document.getElementById('sidebar-name').textContent = USER?.name || '—';
+if (!TOKEN || !USER || USER.role !== 'librarian') window.location.href = '/';
+document.getElementById('nav-name').textContent = USER.name;
 
 function logout() {
     ['nexus_token','nexus_user'].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); });
@@ -204,214 +268,214 @@ function logout() {
 const api = (url, opts = {}) =>
     fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...opts.headers }, ...opts });
 
-function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
-function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+let currentRequests = [];
+let currentVaultDocs = [];
+let allLedgerData = [];
+let activeItem = null;
 
-// ─── Tab switching ───────────────────────────────────────────────
-const tabs = ['upload','pending','stale','students','all'];
-function switchTab(tab) {
-    tabs.forEach(t => {
-        document.getElementById(`panel-${t}`).classList.add('hidden');
-        const btn = document.getElementById(`nav-${t}`);
-        if (btn) btn.className = btn.className.replace('text-accent bg-accent/10','text-text-muted hover:bg-slate hover:text-navy');
+// ─── NAVIGATION ──────────────────────────────────────────────────
+function switchView(view) {
+    ['dashboard', 'ledger', 'upload'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+        document.getElementById(`btn-view-${v}`).className = 'px-4 py-1.5 rounded-nexus text-xs font-semibold text-text-muted hover:text-navy transition-all';
     });
-    show(`panel-${tab}`);
-    const active = document.getElementById(`nav-${tab}`);
-    if (active) active.className = active.className.replace('text-text-muted hover:bg-slate hover:text-navy','text-accent bg-accent/10');
-
-    const titles = { 
-        upload:   ['Upload Dues CSV','Bulk-import student dues via a formatted CSV file'], 
-        pending:  ['Pending Clearance Applications','Student requests awaiting your library verification'],
-        stale:    ['Stale Application Monitor','Requests inactive for over 2 minutes (Testing Mode)'],
-        students: ['Student Dues Overview','Summary of all students and their outstanding dues'], 
-        all:      ['All Dues Ledger','Complete list of every due record in the system'] 
-    };
-    document.getElementById('page-title').textContent = titles[tab][0];
-    document.getElementById('page-sub').textContent   = titles[tab][1];
-
-    if (tab === 'pending')  loadPending();
-    if (tab === 'stale')    loadStale();
-    if (tab === 'students') loadStudents();
-    if (tab === 'all')      loadAllDues();
+    document.getElementById(`view-${view}`).classList.remove('hidden');
+    document.getElementById(`btn-view-${view}`).className = 'px-4 py-1.5 rounded-nexus bg-white shadow-sm text-xs font-bold text-navy transition-all';
+    
+    if (view === 'dashboard') refreshData();
+    if (view === 'ledger') loadLedger();
 }
 
-function fmtDate(s) {
-    if (!s) return '';
-    const d = new Date(s);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+// ─── DASHBOARD ───────────────────────────────────────────────────
+async function refreshData() {
+    const container = document.getElementById('feed-container');
+    container.innerHTML = `<div class="py-20 text-center"><div class="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div></div>`;
+    
+    try {
+        const [reqRes, vaultRes] = await Promise.all([api('/approvals/dashboard'), api('/vault/pending')]);
+        currentRequests = await reqRes.json();
+        currentVaultDocs = await vaultRes.json();
+        renderFeed();
+    } catch (e) { container.innerHTML = `<p class="text-center py-10 text-danger font-bold">Sync Failed</p>`; }
 }
 
-// ─── Pending tab ────────────────────────────────────────────────
-async function loadPending() {
-    show('pending-loading'); hide('pending-list');
-    const res = await api('/approvals/dashboard');
-    const data = await res.json();
-    hide('pending-loading');
+function renderFeed() {
+    const container = document.getElementById('feed-container');
+    container.innerHTML = '';
+    const items = [...currentRequests.map(r => ({ ...r, _type:'clearance' })), ...currentVaultDocs.map(d => ({ ...d, _type:'vault' }))];
+    
+    const STALE_THRESHOLD = 120000;
+    items.forEach(it => {
+        const last = new Date(it.updated_at || it.uploaded_at || it.submitted_at).getTime();
+        it._stale = (Date.now() - last) > STALE_THRESHOLD;
+        it._age = Date.now() - last;
+    });
 
-    document.getElementById('pending-badge').textContent = data.length;
+    items.sort((a,b) => (a._stale === b._stale) ? b._age - a._age : (a._stale ? -1 : 1));
+    document.getElementById('feed-count').textContent = `${items.length} Items`;
 
-    const list = document.getElementById('pending-list');
-    list.innerHTML = '';
-
-    if (!data.length) {
-        list.innerHTML = `<div class="bg-white rounded-card border border-border py-16 text-center text-text-muted text-sm font-semibold">All library clearances completed.</div>`;
-    } else {
-        data.forEach(req => {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-card border border-border p-6 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
-            card.innerHTML = `
-                <div>
-                    <p class="text-text-main font-bold text-base">${req.student_name}</p>
-                    <p class="text-text-muted text-xs">${req.student_email} · ID: #${req.id}</p>
-                    <p class="text-[10px] text-text-muted mt-2 uppercase font-bold tracking-widest">Submitted ${fmtDate(req.submitted_at)}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="takeAction(${req.id}, 'approved')" class="bg-success text-white px-5 py-2 rounded-nexus text-sm font-bold hover:opacity-90 transition active:scale-95">Approve Clearance</button>
-                </div>
-            `;
-            list.appendChild(card);
-        });
-    }
-    show('pending-list');
-}
-
-async function takeAction(reqId, action) {
-    const res = await api(`/approvals/${reqId}/action`, { method: 'PATCH', body: JSON.stringify({ action }) });
-    if (res.ok) loadPending();
-}
-
-// ─── Stale tab ──────────────────────────────────────────────────
-async function loadStale() {
-    const tbody = document.getElementById('stale-body');
-    tbody.innerHTML = '';
-    hide('stale-empty');
-
-    const res = await api('/approvals/stale');
-    const data = await res.json();
-
-    if (!data.length) {
-        show('stale-empty');
+    if (!items.length) {
+        container.innerHTML = `<div class="bg-white border border-dashed border-border rounded-card py-20 text-center text-text-muted text-sm font-semibold italic">Pipeline is clear.</div>`;
         return;
     }
 
-    data.forEach((r, i) => {
-        const diffMs = Date.now() - new Date(r.updated_at).getTime();
-        const mins = Math.floor(diffMs / 60000);
-        const row = document.createElement('tr');
-        row.className = (i % 2 ? 'bg-slate/60' : 'bg-white') + ' border-b border-border';
-        row.innerHTML = `
-            <td class="px-6 py-3.5 text-text-main font-semibold">${r.student_name}</td>
-            <td class="px-6 py-3.5 text-danger font-bold">${mins} min${mins!==1?'s':''}</td>
-            <td class="px-6 py-3.5 font-bold text-text-main">${r.reminder_count || 0}</td>
-            <td class="px-6 py-3.5 text-text-muted text-xs">${fmtDate(r.last_reminder_sent_at) || '—'}</td>
+    items.forEach(item => {
+        const isVault = item._type === 'vault';
+        const card = document.createElement('div');
+        card.className = `request-card bg-white p-6 rounded-card border border-border flex items-center gap-6 ${item._stale ? 'stale-pulse' : 'shadow-sm'}`;
+        card.onclick = () => openModal(item);
+        card.innerHTML = `
+            <div class="w-10 h-10 rounded-nexus ${isVault ? 'bg-amber-50 text-amber-600' : 'bg-accent/5 text-accent'} flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="${isVault ? 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' : 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'}"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-0.5"><p class="text-navy font-bold truncate">${item.student_name}</p>${item._stale?'<span class="text-[8px] bg-danger text-white px-1.5 py-0.5 rounded font-black uppercase">Stale</span>':''}</div>
+                <p class="text-text-muted text-[11px] truncate">${item.student_email} · ${isVault ? 'Vault Artifact' : 'Clearance Request'}</p>
+            </div>
+            <div class="text-right shrink-0 px-4 border-l border-border/50 hidden sm:block">
+                <p class="text-[9px] font-black text-text-muted uppercase tracking-widest">${Math.floor(item._age/60000)}m ago</p>
+            </div>
         `;
-        tbody.appendChild(row);
+        container.appendChild(card);
     });
 }
 
-// ─── CSV Upload ─────────────────────────────────────────────────
-let selectedFile = null;
+// ─── LEDGER ──────────────────────────────────────────────────────
+async function loadLedger() {
+    const body = document.getElementById('ledger-body');
+    const loading = document.getElementById('ledger-loading');
+    show('ledger-loading'); body.innerHTML = '';
+    
+    try {
+        const res = await api('/dues/all');
+        allLedgerData = await res.json();
+        hide('ledger-loading');
+        filterLedger();
+    } catch(e) { loading.textContent = 'Failed to load ledger.'; }
+}
 
+function filterLedger() {
+    const query = document.getElementById('ledger-search').value.toLowerCase();
+    const body = document.getElementById('ledger-body');
+    body.innerHTML = '';
+    
+    allLedgerData.filter(d => d.student_email.toLowerCase().includes(query) || d.student_name.toLowerCase().includes(query))
+        .forEach(d => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-border/50 hover:bg-slate/50 transition-colors';
+            row.innerHTML = `
+                <td class="px-8 py-4"><p class="text-navy font-bold">${d.student_name}</p><p class="text-text-muted text-[11px]">${d.student_email}</p></td>
+                <td class="px-8 py-4 font-black text-navy">₹${d.amount}</td>
+                <td class="px-8 py-4 text-text-muted text-xs">${d.description || '—'}</td>
+                <td class="px-8 py-4"><span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${d.status==='paid'?'bg-success/10 text-success':'bg-danger/10 text-danger'}">${d.status}</span></td>
+            `;
+            body.appendChild(row);
+        });
+}
+
+// ─── CSV UPLOAD ──────────────────────────────────────────────────
+let selectedFile = null;
 function handleFileSelect(e) {
     selectedFile = e.target.files[0];
     if (selectedFile) {
         document.getElementById('drop-label').textContent = selectedFile.name;
         document.getElementById('upload-btn').disabled = false;
-        hide('upload-result');
     }
 }
 
 async function uploadCSV() {
-    if (!selectedFile) return;
     const btn = document.getElementById('upload-btn');
-    btn.disabled = true;
-    btn.textContent = 'Importing…';
-    hide('upload-result');
+    const resDiv = document.getElementById('upload-result');
+    btn.disabled = true; btn.textContent = 'Importing...';
+    
+    const fd = new FormData(); fd.append('file', selectedFile);
+    try {
+        const res = await fetch('/dues/upload', { method:'POST', headers:{ 'Authorization':`Bearer ${TOKEN}` }, body:fd });
+        const data = await res.json();
+        resDiv.classList.remove('hidden');
+        if (res.ok) {
+            resDiv.className = 'p-4 rounded-nexus bg-success/10 text-success text-xs font-bold';
+            resDiv.innerHTML = `✓ Imported: ${data.inserted} | Updated: ${data.updated}`;
+            selectedFile = null;
+            document.getElementById('drop-label').textContent = 'Drop CSV file here';
+        } else {
+            resDiv.className = 'p-4 rounded-nexus bg-danger/10 text-danger text-xs font-bold';
+            resDiv.textContent = data.error;
+        }
+    } catch(e) { alert('Upload failed'); }
+    btn.disabled = false; btn.textContent = 'Initialize Bulk Import';
+}
 
-    const fd = new FormData();
-    fd.append('file', selectedFile);
+// ─── MODAL ───────────────────────────────────────────────────────
+function openModal(item) {
+    activeItem = item;
+    const isVault = item._type === 'vault';
+    document.getElementById('modal-student-name').textContent = item.student_name;
+    document.getElementById('modal-student-email').textContent = item.student_email;
+    document.getElementById('action-comment').value = '';
+    document.getElementById('modal-error').classList.add('hidden');
+    
+    const selector = document.getElementById('doc-selector');
+    selector.innerHTML = '';
+    const docs = isVault ? [item] : (item.documents || []);
+    
+    if (docs.length) {
+        docs.forEach((d,i) => {
+            const b = document.createElement('button');
+            b.className = `w-7 h-7 rounded-nexus border text-[10px] font-black transition-all ${i===0?'bg-navy text-white shadow-md':'bg-white text-text-muted hover:border-navy'}`;
+            b.textContent = i+1;
+            b.onclick = () => {
+                Array.from(selector.children).forEach(c => c.className = 'w-7 h-7 rounded-nexus border text-[10px] font-black transition-all bg-white text-text-muted hover:border-navy');
+                b.className = 'w-7 h-7 rounded-nexus border text-[10px] font-black transition-all bg-navy text-white shadow-md';
+                previewFile(d);
+            };
+            selector.appendChild(b);
+        });
+        previewFile(docs[0]);
+    } else { showPlaceholder(); }
+    
+    document.getElementById('modal-overlay').classList.remove('modal-hidden');
+    document.body.style.overflow = 'hidden';
+}
 
-    const res  = await fetch('/dues/upload', { method: 'POST', headers: { 'Authorization': `Bearer ${TOKEN}` }, body: fd });
-    const data = await res.json();
-
-    const box = document.getElementById('upload-result');
-    box.classList.remove('hidden');
-
-    if (!res.ok) {
-        box.className = 'rounded-nexus px-4 py-3 text-sm font-semibold bg-red-50 border border-red-200 text-danger';
-        box.textContent = data.error || 'Upload failed';
+function previewFile(doc) {
+    const iframe = document.getElementById('preview-iframe');
+    const img = document.getElementById('preview-img');
+    const ph = document.getElementById('preview-placeholder');
+    document.getElementById('modal-filename').textContent = doc.file_name;
+    ph.classList.add('hidden');
+    if (doc.file_type === 'application/pdf') {
+        img.classList.add('hidden'); iframe.classList.remove('hidden'); iframe.src = `/${doc.file_path}`;
     } else {
-        box.className = 'rounded-nexus px-4 py-3 text-sm font-semibold bg-green-50 border border-green-200 text-success space-y-1';
-        box.innerHTML = `
-            <p>✓ Import complete</p>
-            <p class="font-normal text-text-muted">Inserted: <strong>${data.inserted}</strong> &nbsp;|&nbsp; Updated: <strong>${data.updated}</strong> &nbsp;|&nbsp; Skipped: <strong>${data.skipped}</strong></p>
-            ${data.errors?.length ? `<p class="text-amber-600 text-xs mt-1">${data.errors.join(' · ')}</p>` : ''}
-        `;
-        selectedFile = null;
-        document.getElementById('drop-label').textContent = 'Drop CSV here or click to browse';
+        iframe.classList.add('hidden'); img.classList.remove('hidden'); img.src = `/${doc.file_path}`;
     }
-
-    btn.disabled = false;
-    btn.textContent = 'Import Dues';
 }
 
-// ─── Students tab ────────────────────────────────────────────────
-async function loadStudents() {
-    show('students-loading'); hide('students-table');
-    const res  = await api('/dues/students');
-    const data = await res.json();
-    hide('students-loading');
-
-    const tbody = document.getElementById('students-body');
-    tbody.innerHTML = '';
-    data.forEach((s, i) => {
-        const hasDebt = s.unpaid_total > 0;
-        const row = document.createElement('tr');
-        row.className = (i % 2 ? 'bg-slate/60' : 'bg-white') + ' border-b border-border';
-        row.innerHTML = `
-            <td class="px-6 py-3.5 font-semibold text-text-main">${s.name}</td>
-            <td class="px-6 py-3.5 text-text-muted">${s.email}</td>
-            <td class="px-6 py-3.5">
-                ${hasDebt
-                    ? `<span class="inline-block bg-red-50 text-danger text-[11px] font-bold px-2.5 py-1 rounded-full border border-red-200">${s.unpaid_count} due${s.unpaid_count!==1?'s':''}</span>`
-                    : `<span class="inline-block bg-green-50 text-success text-[11px] font-bold px-2.5 py-1 rounded-full border border-green-200">Clear</span>`
-                }
-            </td>
-            <td class="px-6 py-3.5 font-bold ${hasDebt ? 'text-danger' : 'text-success'}">
-                ₹${s.unpaid_total || 0}
-            </td>`;
-        tbody.appendChild(row);
-    });
-    show('students-table');
+function showPlaceholder() {
+    document.getElementById('preview-iframe').classList.add('hidden');
+    document.getElementById('preview-img').classList.add('hidden');
+    document.getElementById('preview-placeholder').classList.remove('hidden');
 }
 
-// ─── All dues tab ────────────────────────────────────────────────
-async function loadAllDues() {
-    show('all-loading'); hide('all-table');
-    const res  = await api('/dues/all');
-    const data = await res.json();
-    hide('all-loading');
+function closeModal() { document.getElementById('modal-overlay').classList.add('modal-hidden'); document.body.style.overflow = ''; }
 
-    const tbody = document.getElementById('all-body');
-    tbody.innerHTML = '';
-    data.forEach((d, i) => {
-        const paid = d.status === 'paid';
-        const row = document.createElement('tr');
-        row.className = (i % 2 ? 'bg-slate/60' : 'bg-white') + ' border-b border-border';
-        row.innerHTML = `
-            <td class="px-6 py-3 text-text-main font-medium">${d.student_name}<br><span class="text-text-muted text-[11px]">${d.student_email}</span></td>
-            <td class="px-6 py-3 text-text-muted">${d.department}</td>
-            <td class="px-6 py-3 font-bold ${paid ? 'text-text-muted line-through' : 'text-danger'}">₹${d.amount}</td>
-            <td class="px-6 py-3 text-text-muted text-[13px]">${d.description || '—'}</td>
-            <td class="px-6 py-3">
-                <span class="inline-block text-[11px] font-bold px-2.5 py-1 rounded-full border ${paid ? 'bg-green-50 border-green-200 text-success' : 'bg-red-50 border-red-200 text-danger'}">
-                    ${paid ? 'Paid' : 'Unpaid'}
-                </span>
-            </td>`;
-        tbody.appendChild(row);
-    });
-    show('all-table');
+async function submitAction(action) {
+    const comment = document.getElementById('action-comment').value;
+    const err = document.getElementById('modal-error');
+    if (action === 'flagged' && !comment.trim()) { err.textContent = 'Reason required for flagging.'; err.classList.remove('hidden'); return; }
+    
+    try {
+        const isVault = activeItem._type === 'vault';
+        const url = isVault ? `/vault/verify/${activeItem.id}` : `/approvals/${activeItem.id}/action`;
+        const body = isVault ? { status: action==='approved'?'approved':'rejected' } : { action, comment };
+        const res = await api(url, { method:'PATCH', body:JSON.stringify(body) });
+        if (!res.ok) throw new Error('Action failed');
+        closeModal(); refreshData();
+    } catch(e) { err.textContent = e.message; err.classList.remove('hidden'); }
 }
+
+window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+refreshData();
 </script>
 </body>
 </html>

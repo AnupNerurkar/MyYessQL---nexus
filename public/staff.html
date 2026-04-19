@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Nexus | Approvals Dashboard</title>
-    <meta name="description" content="Nexus Authority Dashboard — approve or flag student clearance applications."/>
+    <title>Nexus Authority | Command Center</title>
+    <meta name="description" content="Nexus Unified Authority Dashboard — rapid clearance and artifact verification."/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <script>
@@ -23,137 +23,252 @@
                         'text-muted': '#64748B',
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    borderRadius: { nexus: '6px', card: '8px' }
+                    borderRadius: { nexus: '6px', card: '12px' }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sidebar-link { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s; }
-        .sidebar-link.active { background: rgba(37,99,235,.1); color: #2563EB; }
-        .sidebar-link:not(.active) { color: #64748B; }
-        .sidebar-link:not(.active):hover { background: #F1F5F9; color: #0A1628; }
-        .flag-zone { display: none; }
-        .flag-zone.open { display: block; }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+        .stale-pulse { border: 2px solid #FEE2E2; animation: pulse-red 2s infinite; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.1); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        .request-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .request-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.08); }
+        
+        /* Modal Transitions */
+        #modal-overlay { transition: opacity 0.3s ease; }
+        #modal-container { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden #modal-container { transform: scale(0.95) translateY(10px); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F1F5F9; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
     </style>
 </head>
-<body class="bg-slate min-h-screen flex">
+<body class="bg-slate min-h-screen text-text-main">
 
 <!-- ════════════════════════════════════════════════════
-     SIDEBAR
-═══════════════════════════════════════════════════════ -->
-<aside class="w-[240px] min-h-screen bg-white border-r border-border flex flex-col shrink-0 sticky top-0 h-screen">
-
-    <!-- Brand -->
-    <div class="px-6 pt-8 pb-6 border-b border-border">
-        <p class="text-navy text-xl font-extrabold tracking-tighter">Nexus</p>
-        <p class="text-text-muted text-[9px] uppercase tracking-[0.25em] mt-0.5">Clearance Portal</p>
+     NAVIGATION
+     ════════════════════════════════════════════════════ -->
+<nav class="glass-nav sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <div>
+                <p class="text-navy text-xl font-extrabold tracking-tighter">Nexus <span class="text-accent font-black">/</span> Authority</p>
+                <p class="text-text-muted text-[9px] uppercase tracking-[0.25em] font-bold">Command Center</p>
+            </div>
+            <div class="hidden md:flex items-center gap-1 bg-slate border border-border p-1 rounded-nexus">
+                <div class="px-4 py-1.5 rounded-nexus bg-white shadow-sm text-xs font-bold text-navy">Dashboard</div>
+                <div class="px-4 py-1.5 rounded-nexus text-xs font-semibold text-text-muted hover:text-navy cursor-not-allowed opacity-50">Insights</div>
+                <div class="px-4 py-1.5 rounded-nexus text-xs font-semibold text-text-muted hover:text-navy cursor-not-allowed opacity-50">Settings</div>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-5">
+            <div class="text-right hidden sm:block">
+                <p id="nav-name" class="text-navy text-sm font-bold leading-tight">—</p>
+                <p id="nav-role" class="text-accent text-[10px] uppercase font-black tracking-widest">—</p>
+            </div>
+            <button onclick="logout()" class="p-2.5 rounded-nexus border border-border text-text-muted hover:text-danger hover:border-danger transition-all">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+        </div>
     </div>
+</nav>
 
-    <!-- Authority identity -->
-    <div class="px-6 py-5 border-b border-border">
-        <p id="sidebar-name" class="text-navy text-sm font-semibold truncate">—</p>
-        <p id="sidebar-role" class="text-text-muted text-[11px] uppercase tracking-widest mt-0.5">—</p>
-    </div>
+<main class="max-w-7xl mx-auto px-6 py-10 space-y-12">
 
-    <!-- Nav -->
-    <nav class="flex-1 px-3 py-4 space-y-1">
-        <button id="nav-pending" class="sidebar-link active w-full" onclick="switchTab('pending')">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <span class="flex-1 text-left">Pending Requests</span>
-            <span id="pending-badge" class="bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-        </button>
-        <button id="nav-stale" class="sidebar-link w-full" onclick="switchTab('stale')">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span class="flex-1 text-left">Stale Requests</span>
-        </button>
-        <button id="nav-vault" class="sidebar-link w-full" onclick="switchTab('vault')">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            <span class="flex-1 text-left">Vault Verification</span>
-            <span id="vault-badge" class="bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
-        </button>
-    </nav>
+    <!-- ════════════════════════════════════════════════════
+         ANALYTICS HERO (FAKE)
+         ════════════════════════════════════════════════════ -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-card border border-border shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Total Approvals</p>
+                <span class="text-success text-xs font-bold bg-success/10 px-2 py-0.5 rounded-full">+12.5%</span>
+            </div>
+            <div class="flex items-end justify-between">
+                <p class="text-4xl font-black text-navy tracking-tighter">1,248</p>
+                <div class="flex items-center gap-0.5 h-10 items-end">
+                    <div class="w-1 bg-success/20 h-4 rounded-full"></div>
+                    <div class="w-1 bg-success/20 h-6 rounded-full"></div>
+                    <div class="w-1 bg-success/40 h-5 rounded-full"></div>
+                    <div class="w-1 bg-success/60 h-8 rounded-full"></div>
+                    <div class="w-1 bg-success h-10 rounded-full"></div>
+                </div>
+            </div>
+            <p class="text-[11px] text-text-muted">Clearance cycles completed this month</p>
+        </div>
 
-    <!-- Logout -->
-    <div class="px-6 py-5 border-t border-border">
-        <button onclick="logout()" class="text-text-muted hover:text-navy text-xs uppercase tracking-widest font-semibold flex items-center gap-2 transition-colors">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            Sign Out
-        </button>
-    </div>
-</aside>
+        <div class="bg-white p-6 rounded-card border border-border shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-text-muted">Avg Response Time</p>
+                <span class="text-accent text-xs font-bold bg-accent/10 px-2 py-0.5 rounded-full">-2.1h</span>
+            </div>
+            <div class="flex items-end justify-between">
+                <p class="text-4xl font-black text-navy tracking-tighter">4.2<span class="text-xl">h</span></p>
+                <div class="flex items-center gap-0.5 h-10 items-end">
+                    <div class="w-1 bg-accent/20 h-10 rounded-full"></div>
+                    <div class="w-1 bg-accent/20 h-8 rounded-full"></div>
+                    <div class="w-1 bg-accent/40 h-7 rounded-full"></div>
+                    <div class="w-1 bg-accent/60 h-5 rounded-full"></div>
+                    <div class="w-1 bg-accent h-4 rounded-full"></div>
+                </div>
+            </div>
+            <p class="text-[11px] text-text-muted">From submission to final decision</p>
+        </div>
+
+        <div class="bg-navy p-6 rounded-card shadow-xl space-y-4 relative overflow-hidden">
+            <div class="relative z-10">
+                <p class="text-[11px] font-bold uppercase tracking-widest text-white/60">System Health</p>
+            </div>
+            <div class="flex items-end justify-between relative z-10">
+                <p class="text-4xl font-black text-white tracking-tighter">98.2<span class="text-xl">%</span></p>
+                <div class="flex items-center gap-2">
+                    <div class="flex -space-x-2">
+                        <div class="w-7 h-7 rounded-full border-2 border-navy bg-slate flex items-center justify-center text-[10px] font-bold text-navy">AI</div>
+                        <div class="w-7 h-7 rounded-full border-2 border-navy bg-accent flex items-center justify-center text-[10px] font-bold text-white">V</div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-[11px] text-white/50 relative z-10">Operational & High Reliability</p>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════════════
+         ACTION FEED
+         ════════════════════════════════════════════════════ -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-extrabold text-navy tracking-tight">Priority Action Feed</h2>
+                <p class="text-text-muted text-xs mt-0.5">Unified stream of clearance and verification requests</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="feed-count" class="text-[10px] font-black uppercase tracking-widest bg-white border border-border px-3 py-1.5 rounded-full shadow-sm">
+                    0 Items Pending
+                </div>
+                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-white transition-colors text-text-muted">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Feed Container -->
+        <div id="feed-container" class="space-y-4">
+            <!-- Loading state -->
+            <div class="py-20 text-center space-y-3">
+                <div class="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
+                <p class="text-text-muted text-sm font-medium">Synchronizing feed...</p>
+            </div>
+        </div>
+    </section>
+
+</main>
 
 <!-- ════════════════════════════════════════════════════
-     MAIN CONTENT
-═══════════════════════════════════════════════════════ -->
-<div class="flex-1 flex flex-col min-h-screen overflow-hidden">
-
-    <!-- Top bar -->
-    <header class="bg-white border-b border-border px-8 py-4 flex items-center justify-between shrink-0 shadow-[0_1px_10px_rgba(0,0,0,0.02)]">
-        <div>
-            <h1 id="main-title" class="text-lg font-extrabold text-navy tracking-tight">Pending Requests</h1>
-            <p id="main-subtitle" class="text-text-muted text-xs mt-0.5">Applications awaiting your clearance decision</p>
-        </div>
-        <span id="main-count" class="text-[11px] font-bold uppercase tracking-widest text-text-muted bg-slate border border-border px-3 py-1.5 rounded-nexus"></span>
-    </header>
-
-    <!-- Content panels -->
-    <main class="flex-1 overflow-y-auto px-8 py-7 space-y-5">
-
-        <!-- Loading -->
-        <div id="content-loading" class="text-center py-16 text-text-muted text-sm">Loading…</div>
-
-        <!-- ── PENDING PANEL ─────────────────────────────────── -->
-        <div id="panel-pending" class="hidden space-y-5"></div>
-
-        <!-- ── VAULT PANEL ───────────────────────────────────── -->
-        <div id="panel-vault" class="hidden space-y-6">
-            <div id="vault-list" class="grid grid-cols-1 gap-6"></div>
-        </div>
-
-        <!-- ── STALE PANEL ──────────────────────────────────── -->
-        <div id="panel-stale" class="hidden">
-            <!-- Info note -->
-            <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-nexus px-4 py-3 mb-5">
-                <svg class="w-4 h-4 text-accent mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-accent text-xs font-semibold">Email nudges are sent automatically by the system for requests stale beyond 2 days.</p>
+     VERIFICATION MODAL
+     ════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-hidden fixed inset-0 bg-navy/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div id="modal-container" class="bg-white w-full max-w-6xl h-[85vh] rounded-card shadow-2xl flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Left: Document Preview -->
+        <div class="flex-1 bg-slate border-r border-border relative flex flex-col">
+            <div class="px-6 py-4 border-b border-border bg-white/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-nexus bg-navy flex items-center justify-center text-white">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <div>
+                        <p id="modal-filename" class="text-xs font-bold text-navy truncate max-w-[200px]">document.pdf</p>
+                        <p id="modal-filetype" class="text-[9px] uppercase font-black text-text-muted tracking-widest">PDF Artifact</p>
+                    </div>
+                </div>
+                <!-- Doc Selector (if multiple) -->
+                <div id="doc-selector" class="flex gap-1"></div>
             </div>
-            <div class="bg-white rounded-card border border-border overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-slate border-b border-border">
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Student Name</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Email</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Stuck at Stage</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Stale Since</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Reminders</th>
-                            <th class="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-widest text-text-muted">Last Nudge</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stale-body"></tbody>
-                </table>
-                <div id="stale-empty" class="hidden py-12 text-center text-text-muted text-sm">No stale requests — pipeline is flowing.</div>
+            
+            <div class="flex-1 relative bg-[#525659]">
+                <iframe id="preview-iframe" class="w-full h-full border-none hidden"></iframe>
+                <img id="preview-img" class="w-full h-full object-contain hidden" src="" alt="Preview"/>
+                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center text-white/40">
+                    <p class="text-sm font-medium italic">Select a document to preview</p>
+                </div>
             </div>
         </div>
 
-    </main>
+        <!-- Right: Details & Actions -->
+        <div class="w-full md:w-[380px] flex flex-col bg-white">
+            <div class="p-8 flex-1 overflow-y-auto space-y-8">
+                <!-- Close -->
+                <button onclick="closeModal()" class="absolute top-4 right-4 p-2 rounded-full hover:bg-slate transition-colors text-text-muted">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <div class="space-y-1">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Student Identity</p>
+                    <h3 id="modal-student-name" class="text-2xl font-black text-navy leading-tight">—</h3>
+                    <p id="modal-student-email" class="text-text-muted text-sm">—</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                    <div>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-text-muted mb-1">Status</p>
+                        <span id="modal-status-badge" class="inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate text-text-muted">Pending</span>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-text-muted mb-1">Submitted</p>
+                        <p id="modal-date" class="text-xs font-bold text-navy leading-tight">—</p>
+                    </div>
+                </div>
+
+                <!-- Comment Zone -->
+                <div class="space-y-3">
+                    <label class="text-[10px] font-black uppercase tracking-widest text-text-muted flex items-center justify-between">
+                        Comment / Internal Note
+                        <span class="text-[8px] font-medium normal-case text-text-muted/60">(Required for Flagging)</span>
+                    </label>
+                    <textarea id="action-comment" rows="4" 
+                        placeholder="Type a reason for flagging or rejection..."
+                        class="w-full px-4 py-3 bg-slate border border-border rounded-card text-sm focus:ring-4 focus:ring-accent/10 focus:border-accent outline-none resize-none transition-all"></textarea>
+                </div>
+
+                <div id="modal-error" class="hidden bg-danger/10 text-danger text-[11px] font-bold p-3 rounded-nexus border border-danger/20"></div>
+            </div>
+
+            <!-- Sticky Actions -->
+            <div class="p-6 bg-slate/50 border-t border-border space-y-3">
+                <div class="flex gap-3">
+                    <button id="btn-delete" onclick="submitAction('flagged')" class="flex-1 bg-white border border-danger text-danger py-3 rounded-nexus text-[13px] font-black uppercase tracking-widest hover:bg-danger hover:text-white transition-all active:scale-95">
+                        Delete / Flag
+                    </button>
+                    <button id="btn-approve" onclick="submitAction('approved')" class="flex-1 bg-navy text-white py-3 rounded-nexus text-[13px] font-black uppercase tracking-widest hover:opacity-90 shadow-lg shadow-navy/20 transition-all active:scale-95">
+                        Approve
+                    </button>
+                </div>
+                <p class="text-[10px] text-center text-text-muted/60 font-medium italic">Action will be recorded as: <span id="current-role-label">—</span></p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-// ─── Auth guard ─────────────────────────────────────────────────
+// ─── AUTH & IDENTITY ──────────────────────────────────────────────
 const TOKEN = sessionStorage.getItem('nexus_token') || localStorage.getItem('nexus_token');
 const USER  = JSON.parse(sessionStorage.getItem('nexus_user') || localStorage.getItem('nexus_user') || 'null');
 
-if (TOKEN) { localStorage.setItem('nexus_token', TOKEN); sessionStorage.setItem('nexus_token', TOKEN); }
-if (USER)  { localStorage.setItem('nexus_user', JSON.stringify(USER)); sessionStorage.setItem('nexus_user', JSON.stringify(USER)); }
-const STAFF_ROLES = ['lab_incharge', 'hod', 'principal', 'librarian', 'accounts'];
-
-if (!TOKEN || !USER || !STAFF_ROLES.includes(USER.role)) {
+if (!TOKEN || !USER || !['lab_incharge', 'hod', 'principal', 'librarian', 'accounts'].includes(USER.role)) {
     window.location.href = '/';
 }
 
-// ─── Populate identity ───────────────────────────────────────────
 const ROLE_LABELS = {
     lab_incharge: 'Lab Incharge',
     hod:          'HOD',
@@ -161,354 +276,286 @@ const ROLE_LABELS = {
     librarian:    'Librarian',
     accounts:     'Accounts',
 };
-document.getElementById('sidebar-name').textContent = USER?.name || '—';
-document.getElementById('sidebar-role').textContent = ROLE_LABELS[USER?.role] || USER?.role;
+
+document.getElementById('nav-name').textContent = USER.name;
+document.getElementById('nav-role').textContent = ROLE_LABELS[USER.role] || USER.role;
+document.getElementById('current-role-label').textContent = ROLE_LABELS[USER.role] || USER.role;
 
 function logout() {
-    localStorage.removeItem('nexus_token');
-    localStorage.removeItem('nexus_user');
-    sessionStorage.removeItem('nexus_token');
-    sessionStorage.removeItem('nexus_user');
+    ['nexus_token','nexus_user'].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); });
     window.location.href = '/';
 }
 
-// ─── Helpers ────────────────────────────────────────────────────
+// ─── DATA FETCHING ────────────────────────────────────────────────
 const api = (url, opts = {}) =>
     fetch(url, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...opts.headers }, ...opts });
 
-function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
-function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+let currentRequests = [];
+let currentVaultDocs = [];
+let activeItem = null; // Currently viewed item in modal
 
-function fmtDate(s) {
-    if (!s) return '—';
-    const d = new Date(s);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-        + ' · '
-        + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-}
+async function refreshData() {
+    const container = document.getElementById('feed-container');
+    container.innerHTML = `
+        <div class="py-20 text-center space-y-3">
+            <div class="w-10 h-10 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto"></div>
+            <p class="text-text-muted text-sm font-medium">Synchronizing feed...</p>
+        </div>`;
 
-function daysSince(s) {
-    if (!s) return '—';
-    const diff = Date.now() - new Date(s).getTime();
-    return Math.floor(diff / 86400000);
-}
-
-const STAGE_LABELS = { 
-    librarian:    'Librarian',
-    accounts:     'Accounts',
-    lab_incharge: 'Lab Incharge', 
-    hod:          'HOD', 
-    principal:    'Principal' 
-};
-
-// ─── Tab switching ───────────────────────────────────────────────
-let currentTab = 'pending';
-
-function switchTab(tab) {
-    currentTab = tab;
-
-    document.getElementById('nav-pending').className  = 'sidebar-link w-full' + (tab === 'pending' ? ' active' : '');
-    document.getElementById('nav-stale').className    = 'sidebar-link w-full' + (tab === 'stale'   ? ' active' : '');
-    document.getElementById('nav-vault').className    = 'sidebar-link w-full' + (tab === 'vault'   ? ' active' : '');
-
-    if (tab === 'pending') {
-        document.getElementById('main-title').textContent    = 'Pending Requests';
-        document.getElementById('main-subtitle').textContent = 'Applications awaiting your clearance decision';
-        show('panel-pending'); hide('panel-stale'); hide('panel-vault');
-        loadPending();
-    } else if (tab === 'stale') {
-        document.getElementById('main-title').textContent    = 'Stale Requests';
-        document.getElementById('main-subtitle').textContent = 'Requests inactive for more than 2 days';
-        show('panel-stale'); hide('panel-pending'); hide('panel-vault');
-        loadStale();
-    } else if (tab === 'vault') {
-        document.getElementById('main-title').textContent    = 'Smart Vault Verification';
-        document.getElementById('main-subtitle').textContent = 'Rapid side-by-side artifact verification';
-        show('panel-vault'); hide('panel-pending'); hide('panel-stale');
-        loadVault();
+    try {
+        const [reqRes, vaultRes] = await Promise.all([
+            api('/approvals/dashboard'),
+            api('/vault/pending')
+        ]);
+        
+        currentRequests = await reqRes.json();
+        currentVaultDocs = await vaultRes.json();
+        
+        renderFeed();
+    } catch (e) {
+        container.innerHTML = `<p class="text-center py-10 text-danger font-bold">Failed to load data. Please refresh.</p>`;
     }
 }
 
-// ─── Load Vault ─────────────────────────────────────────────────
-async function loadVault() {
-    const res = await api('/vault/pending');
-    const data = await res.json();
-    
-    const container = document.getElementById('vault-list');
+function renderFeed() {
+    const container = document.getElementById('feed-container');
     container.innerHTML = '';
-    
-    document.getElementById('vault-badge').textContent = data.length;
-    if (currentTab === 'vault') document.getElementById('main-count').textContent = `${data.length} document${data.length !== 1 ? 's' : ''}`;
 
-    if (!data.length) {
+    // Merge and Tag
+    const items = [
+        ...currentRequests.map(r => ({ ...r, _type: 'clearance' })),
+        ...currentVaultDocs.map(d => ({ ...d, _type: 'vault' }))
+    ];
+
+    // Identify Stale
+    // Stale = updated_at > 2 mins (for testing)
+    const STALE_THRESHOLD = 120000; 
+    items.forEach(it => {
+        const lastUpdate = new Date(it.updated_at || it.uploaded_at || it.submitted_at).getTime();
+        it._stale = (Date.now() - lastUpdate) > STALE_THRESHOLD;
+        it._age = Date.now() - lastUpdate;
+    });
+
+    // Sort: Stale first, then by age
+    items.sort((a, b) => {
+        if (a._stale && !b._stale) return -1;
+        if (!a._stale && b._stale) return 1;
+        return b._age - a._age; // Newer first within groups
+    });
+
+    document.getElementById('feed-count').textContent = `${items.length} Item${items.length !== 1 ? 's' : ''} Pending`;
+
+    if (items.length === 0) {
         container.innerHTML = `
-            <div class="bg-white rounded-card border border-border py-16 text-center">
-                <p class="text-text-muted text-sm font-semibold">No documents pending verification</p>
+            <div class="bg-white border border-dashed border-border rounded-card py-20 text-center">
+                <div class="w-12 h-12 bg-slate rounded-full flex items-center justify-center mx-auto mb-4 text-success">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <p class="text-navy font-bold">All caught up!</p>
+                <p class="text-text-muted text-xs mt-1">No pending clearance or vault verification items.</p>
             </div>`;
         return;
     }
 
-    const ROLE_LABELS = { library_receipt: 'Library Receipt', lab_manual: 'Lab Manual', grade_card: 'Grade Card', id_card: 'ID Card', other: 'Other' };
-
-    data.forEach(doc => {
+    items.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-card border border-border overflow-hidden flex flex-col md:flex-row h-[500px] shadow-sm';
+        const isVault = item._type === 'vault';
+        const ageSecs = Math.floor(item._age / 1000);
+        const ageMins = Math.floor(ageSecs / 60);
+        const ageHours = Math.floor(ageMins / 60);
+        const ageDays = Math.floor(ageHours / 24);
+        
+        let ageLabel = 'Just now';
+        if (ageDays > 0) ageLabel = `${ageDays}d ago`;
+        else if (ageHours > 0) ageLabel = `${ageHours}h ago`;
+        else if (ageMins > 0) ageLabel = `${ageMins}m ago`;
+
+        card.className = `request-card bg-white p-6 rounded-card border border-border flex items-center gap-6 ${item._stale ? 'stale-pulse' : 'shadow-sm'}`;
+        card.onclick = () => openModal(item);
+        
         card.innerHTML = `
-            <!-- Left: Document Preview (Side-by-side) -->
-            <div class="flex-1 bg-slate border-r border-border relative overflow-hidden group">
-                ${doc.file_type === 'application/pdf' 
-                    ? `<iframe src="/${doc.file_path}" class="w-full h-full border-none"></iframe>`
-                    : `<img src="/${doc.file_path}" class="w-full h-full object-contain" />`
+            <div class="w-12 h-12 rounded-card ${isVault ? 'bg-amber-50 text-amber-600' : 'bg-accent/5 text-accent'} flex items-center justify-center shrink-0">
+                ${isVault 
+                    ? `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`
+                    : `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`
                 }
-                <div class="absolute inset-x-0 top-0 bg-navy/80 text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                    Previewing: ${doc.file_name}
-                </div>
             </div>
             
-            <!-- Right: Info & Actions -->
-            <div class="w-full md:w-[320px] p-6 flex flex-col justify-between shrink-0">
-                <div class="space-y-5">
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Student</p>
-                        <p class="text-text-main font-bold text-base leading-tight">${doc.student_name}</p>
-                        <p class="text-text-muted text-xs truncate">${doc.student_email}</p>
-                    </div>
-                    
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Artifact Type</p>
-                        <span class="inline-block bg-accent/10 text-accent text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-accent/20">
-                            ${ROLE_LABELS[doc.document_role] || doc.document_role}
-                        </span>
-                    </div>
-
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Uploaded On</p>
-                        <p class="text-text-main text-xs font-medium">${fmtDate(doc.uploaded_at)}</p>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 mb-1">
+                    <p class="text-navy font-bold truncate">${item.student_name}</p>
+                    ${item._stale ? `<span class="bg-danger text-white text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded animate-pulse">Priority</span>` : ''}
+                </div>
+                <div class="flex items-center gap-4">
+                    <p class="text-text-muted text-[11px] truncate flex-1">${item.student_email}</p>
+                    <div class="flex items-center gap-1 text-[10px] font-bold text-text-muted/60">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        ${ageLabel}
                     </div>
                 </div>
+            </div>
 
-                <div class="space-y-3 pt-6 border-t border-border">
-                    <button onclick="verifyDocument(${doc.id}, 'rejected')" class="w-full bg-danger/10 text-danger border border-danger/20 py-2.5 rounded-nexus text-sm font-bold hover:bg-danger hover:text-white transition active:scale-95">
-                        Reject Artifact
-                    </button>
-                    <button onclick="verifyDocument(${doc.id}, 'approved')" class="w-full bg-success text-white py-2.5 rounded-nexus text-sm font-bold hover:opacity-90 transition shadow-md active:scale-95">
-                        Approve &amp; Verify
-                    </button>
-                </div>
+            <div class="hidden sm:flex flex-col items-end gap-2 shrink-0 px-6 border-l border-border/50">
+                <p class="text-[9px] font-bold uppercase tracking-widest text-text-muted">Type</p>
+                <span class="text-[10px] font-black uppercase tracking-widest ${isVault ? 'text-amber-700' : 'text-accent'}">
+                    ${isVault ? 'Vault Artifact' : 'Clearance Request'}
+                </span>
+            </div>
+
+            <div class="shrink-0 pl-2">
+                <button class="w-10 h-10 rounded-full hover:bg-slate flex items-center justify-center transition-colors text-text-muted/40">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
             </div>
         `;
         container.appendChild(card);
     });
 }
 
-async function verifyDocument(id, status) {
-    const res = await api(`/vault/verify/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) });
-    if (res.ok) {
-        loadVault();
+// ─── MODAL LOGIC ──────────────────────────────────────────────────
+function openModal(item) {
+    activeItem = item;
+    const isVault = item._type === 'vault';
+    
+    document.getElementById('modal-student-name').textContent = item.student_name;
+    document.getElementById('modal-student-email').textContent = item.student_email;
+    document.getElementById('modal-date').textContent = new Date(item.submitted_at || item.uploaded_at).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    document.getElementById('action-comment').value = '';
+    document.getElementById('modal-error').classList.add('hidden');
+    
+    // Status Badge
+    const badge = document.getElementById('modal-status-badge');
+    badge.textContent = isVault ? 'Vault Pending' : 'Clearance Pending';
+    badge.className = `inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isVault ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`;
+
+    // Document Selector & Preview
+    const selector = document.getElementById('doc-selector');
+    selector.innerHTML = '';
+    
+    const docs = isVault ? [item] : (item.documents || []);
+    
+    if (docs.length === 0) {
+        showPlaceholder();
     } else {
-        const data = await res.json();
-        alert(data.error || 'Verification failed');
+        docs.forEach((doc, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `w-8 h-8 rounded-nexus border text-[10px] font-bold transition-all ${idx === 0 ? 'bg-navy text-white border-navy shadow-lg' : 'bg-white text-text-muted border-border hover:border-navy'}`;
+            btn.textContent = idx + 1;
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                // Update active buttons
+                Array.from(selector.children).forEach(b => b.className = b.className.replace('bg-navy text-white border-navy shadow-lg', 'bg-white text-text-muted border-border hover:border-navy'));
+                btn.className = 'w-8 h-8 rounded-nexus border text-[10px] font-bold transition-all bg-navy text-white border-navy shadow-lg';
+                previewFile(doc);
+            };
+            selector.appendChild(btn);
+        });
+        previewFile(docs[0]);
+    }
+
+    // Show Modal
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('modal-hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.add('modal-hidden');
+    document.body.style.overflow = '';
+    activeItem = null;
+}
+
+function previewFile(doc) {
+    const iframe = document.getElementById('preview-iframe');
+    const img = document.getElementById('preview-img');
+    const placeholder = document.getElementById('preview-placeholder');
+    
+    document.getElementById('modal-filename').textContent = doc.file_name;
+    document.getElementById('modal-filetype').textContent = doc.file_type === 'application/pdf' ? 'PDF Artifact' : 'Image Artifact';
+
+    placeholder.classList.add('hidden');
+    
+    if (doc.file_type === 'application/pdf') {
+        img.classList.add('hidden');
+        iframe.classList.remove('hidden');
+        iframe.src = `/${doc.file_path}`;
+    } else {
+        iframe.classList.add('hidden');
+        img.classList.remove('hidden');
+        img.src = `/${doc.file_path}`;
     }
 }
 
-// ─── Load Pending ───────────────────────────────────────────────
-async function loadPending() {
-    hide('content-loading');
-    const res  = await api('/approvals/dashboard');
-    const data = await res.json();
-    hide('content-loading');
+function showPlaceholder() {
+    document.getElementById('preview-iframe').classList.add('hidden');
+    document.getElementById('preview-img').classList.add('hidden');
+    document.getElementById('preview-placeholder').classList.remove('hidden');
+    document.getElementById('modal-filename').textContent = 'No Artifacts';
+}
 
-    const panel = document.getElementById('panel-pending');
-    panel.innerHTML = '';
+// ─── ACTIONS ──────────────────────────────────────────────────────
+async function submitAction(action) {
+    if (!activeItem) return;
+    
+    const comment = document.getElementById('action-comment').value;
+    const errorDiv = document.getElementById('modal-error');
+    errorDiv.classList.add('hidden');
 
-    document.getElementById('pending-badge').textContent = data.length;
-    document.getElementById('main-count').textContent    = `${data.length} request${data.length !== 1 ? 's' : ''}`;
-
-    if (!data.length) {
-        panel.innerHTML = `
-            <div class="bg-white rounded-card border border-border py-16 text-center">
-                <p class="text-text-muted text-sm font-semibold">No pending requests</p>
-                <p class="text-text-muted/60 text-xs mt-1">Check back later or view stale requests in the sidebar</p>
-            </div>`;
-        show('panel-pending');
+    if (action === 'flagged' && !comment.trim()) {
+        errorDiv.textContent = 'Please provide a comment for flagging.';
+        errorDiv.classList.remove('hidden');
         return;
     }
 
-    data.forEach(req => {
-        const card = buildRequestCard(req);
-        panel.appendChild(card);
-    });
+    const btnApprove = document.getElementById('btn-approve');
+    const btnDelete = document.getElementById('btn-delete');
+    [btnApprove, btnDelete].forEach(b => b.disabled = true);
+    
+    try {
+        const isVault = activeItem._type === 'vault';
+        const url = isVault 
+            ? `/vault/verify/${activeItem.id}` 
+            : `/approvals/${activeItem.id}/action`;
+        
+        const method = isVault ? 'PATCH' : 'PATCH';
+        const body = isVault 
+            ? { status: action === 'approved' ? 'approved' : 'rejected' }
+            : { action, comment };
 
-    show('panel-pending');
-}
+        const res = await api(url, {
+            method: 'PATCH',
+            body: JSON.stringify(body)
+        });
 
-// ─── Build Request Card ─────────────────────────────────────────
-function buildRequestCard(req) {
-    const docRoles = { library_receipt: 'Library Receipt', lab_manual: 'Lab Manual', grade_card: 'Grade Card' };
-    const docMap   = {};
-    (req.documents || []).forEach(d => { docMap[d.document_role] = d; });
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || 'Action failed');
+        }
 
-    const docsHtml = Object.entries(docRoles).map(([role, label]) => {
-        const doc = docMap[role];
-        return `
-            <div class="flex items-center gap-3 py-1.5">
-                <svg class="w-3.5 h-3.5 shrink-0 ${doc ? 'text-success' : 'text-text-muted/40'}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span class="text-[12px] font-semibold text-text-muted w-28 shrink-0">${label}</span>
-                ${doc
-                    ? `<span class="text-[12px] text-text-muted truncate flex-1">${doc.file_name}</span>
-                       <a href="/${doc.file_path}" target="_blank" rel="noopener" class="text-[11px] font-semibold text-accent hover:underline shrink-0">View</a>`
-                    : `<span class="text-[12px] text-text-muted/50 italic flex-1">Not uploaded</span>`
-                }
-            </div>`;
-    }).join('');
-
-    const card = document.createElement('div');
-    card.id = `card-${req.id}`;
-    card.className = 'bg-white rounded-card border border-border p-6 space-y-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]';
-    card.innerHTML = `
-        <!-- Student info -->
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <p class="text-text-main font-bold text-base">${req.student_name}</p>
-                <p class="text-text-muted text-sm">${req.student_email}</p>
-            </div>
-            <div class="text-right shrink-0">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted">Submitted</p>
-                <p class="text-[12px] text-text-muted mt-0.5">${fmtDate(req.submitted_at)}</p>
-                ${(Date.now() - new Date(req.updated_at).getTime() > 120000) 
-                    ? `<span class="inline-block mt-2 bg-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-red-200 animate-pulse">Delayed</span>` 
-                    : ''}
-            </div>
-        </div>
-
-        <!-- Documents -->
-        <div class="bg-slate rounded-nexus px-4 py-2 space-y-0.5 border border-border">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">Verification Artifacts</p>
-            ${docsHtml}
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-3 pt-1">
-            <button onclick="toggleFlag(${req.id})"
-                class="px-4 py-2 rounded-nexus text-sm font-semibold bg-danger text-white hover:opacity-90 transition active:scale-95">
-                Flag
-            </button>
-            <button onclick="takeAction(${req.id}, 'approved')"
-                class="px-5 py-2 rounded-nexus text-sm font-semibold bg-success text-white hover:opacity-90 transition active:scale-95">
-                Approve
-            </button>
-        </div>
-
-        <!-- Flag zone -->
-        <div id="flag-zone-${req.id}" class="flag-zone border-t border-border pt-4 space-y-3">
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-muted">Comment for Student</label>
-            <textarea id="flag-comment-${req.id}" rows="2"
-                placeholder="Explain what is missing or incorrect…"
-                class="block w-full px-3 py-2.5 bg-slate border border-border rounded-nexus text-text-main text-sm focus:ring-2 focus:ring-danger/20 focus:border-danger outline-none resize-none"></textarea>
-            <div class="flex justify-end gap-2">
-                <button onclick="toggleFlag(${req.id})" class="px-4 py-2 text-sm font-semibold text-text-muted border border-border rounded-nexus hover:bg-slate transition">Cancel</button>
-                <button onclick="takeAction(${req.id}, 'flagged')" class="px-4 py-2 text-sm font-semibold bg-danger text-white rounded-nexus hover:opacity-90 transition">Confirm Flag</button>
-            </div>
-        </div>
-
-        <!-- Result message -->
-        <p id="card-msg-${req.id}" class="hidden text-xs font-semibold text-center pt-1"></p>
-    `;
-    return card;
-}
-
-function toggleFlag(reqId) {
-    const zone = document.getElementById(`flag-zone-${reqId}`);
-    zone.classList.toggle('open');
-}
-
-// ─── Take Action ────────────────────────────────────────────────
-async function takeAction(reqId, action) {
-    const comment = action === 'flagged'
-        ? document.getElementById(`flag-comment-${reqId}`)?.value || ''
-        : '';
-
-    const res  = await api(`/approvals/${reqId}/action`, {
-        method: 'PATCH',
-        body: JSON.stringify({ action, comment })
-    });
-    const data = await res.json();
-
-    const msg = document.getElementById(`card-msg-${reqId}`);
-    if (!res.ok) {
-        msg.textContent = data.error || 'Action failed';
-        msg.className = 'text-xs font-semibold text-center pt-1 text-danger';
-        msg.classList.remove('hidden');
-        return;
-    }
-
-    // Fade out the card
-    const card = document.getElementById(`card-${reqId}`);
-    card.style.transition = 'opacity .4s, transform .4s';
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(-6px)';
-    setTimeout(() => { card.remove(); refreshPendingCount(); }, 450);
-}
-
-function refreshPendingCount() {
-    const remaining = document.querySelectorAll('[id^="card-"]').length;
-    document.getElementById('pending-badge').textContent = remaining;
-    document.getElementById('main-count').textContent    = `${remaining} request${remaining !== 1 ? 's' : ''}`;
-    if (remaining === 0) {
-        document.getElementById('panel-pending').innerHTML = `
-            <div class="bg-white rounded-card border border-border py-16 text-center">
-                <p class="text-success font-semibold text-sm">All caught up — no pending requests.</p>
-            </div>`;
+        // Success: Close and Refresh
+        closeModal();
+        refreshData();
+    } catch (e) {
+        errorDiv.textContent = e.message;
+        errorDiv.classList.remove('hidden');
+    } finally {
+        [btnApprove, btnDelete].forEach(b => b.disabled = false);
     }
 }
 
-// ─── Load Stale ─────────────────────────────────────────────────
-async function loadStale() {
-    const tbody = document.getElementById('stale-body');
-    tbody.innerHTML = '';
-    hide('stale-empty');
+// ─── INIT ─────────────────────────────────────────────────────────
+refreshData();
 
-    const res  = await api('/approvals/stale');
-    const data = await res.json();
+// Close on Escape
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});
 
-    if (!data.length) {
-        show('stale-empty');
-        document.getElementById('main-count').textContent = '0 requests';
-        return;
-    }
-
-    document.getElementById('main-count').textContent = `${data.length} request${data.length !== 1 ? 's' : ''}`;
-
-    data.forEach((r, i) => {
-        const diffMs = Date.now() - new Date(r.updated_at).getTime();
-        const mins = Math.floor(diffMs / 60000);
-        const days = Math.floor(diffMs / 86400000);
-        const staleText = days > 0 ? `${days} day${days!==1?'s':''}` : `${mins} min${mins!==1?'s':''}`;
-
-        const row  = document.createElement('tr');
-        row.className = i % 2 !== 0 ? 'bg-slate/70 border-b border-border' : 'bg-white border-b border-border';
-        row.innerHTML = `
-            <td class="px-6 py-3.5 text-text-main font-semibold">${r.student_name}</td>
-            <td class="px-6 py-3.5 text-text-muted text-[13px]">${r.student_email}</td>
-            <td class="px-6 py-3.5">
-                <span class="inline-block bg-amber-50 text-amber-700 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-amber-200">
-                    ${STAGE_LABELS[r.current_stage] || r.current_stage}
-                </span>
-            </td>
-            <td class="px-6 py-3.5">
-                <span class="text-danger font-bold text-sm">${staleText}</span>
-            </td>
-            <td class="px-6 py-3.5 font-bold text-text-main">${r.reminder_count || 0}</td>
-            <td class="px-6 py-3.5 text-text-muted text-xs">${fmtDate(r.last_reminder_sent_at) || '—'}</td>`;
-        tbody.appendChild(row);
-    });
-}
-
-// ─── Init ───────────────────────────────────────────────────────
-loadPending();
-loadVault(); // Initialize badge count
+// Close on Overlay Click
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeModal();
+});
 </script>
 </body>
 </html>
