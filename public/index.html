@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Nexus | Authentication Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-navy": "#0A1628",
+                        "accent-blue": "#2563EB",
+                        "surface-white": "#FFFFFF",
+                        "background-slate": "#F8FAFC",
+                        "border-gray": "#E2E8F0",
+                        "text-dark": "#0F172A",
+                        "text-secondary": "#64748B",
+                        "error-red": "#EF4444",
+                        "success-green": "#16A34A"
+                    },
+                    "borderRadius": {
+                        "nexus": "6px"
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .geometric-overlay {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .tab-active { border-bottom: 2px solid #0A1628; color: #0A1628; font-weight: 700; }
+        .tab-inactive { color: #64748B; }
+    </style>
+</head>
+<body class="bg-primary-navy min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Background Texture -->
+    <div class="absolute inset-0 geometric-overlay pointer-events-none"></div>
+    
+    <main class="relative z-10 w-full max-w-[480px] px-6">
+        <!-- Brand Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold tracking-tighter text-white mb-2">Nexus</h1>
+            <p class="text-[10px] uppercase tracking-[0.3em] font-medium text-white/60">The Automated Clearance Protocol</p>
+        </div>
+
+        <!-- Main Auth Card -->
+        <div class="bg-white rounded-lg shadow-[0_24px_60px_rgba(0,0,0,0.4)] overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-border-gray">
+                <button id="tab-login" class="flex-1 py-4 text-sm uppercase tracking-widest tab-active" onclick="switchTab('login')">Login</button>
+                <button id="tab-register" class="flex-1 py-4 text-sm uppercase tracking-widest tab-inactive" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <div class="p-8 md:p-10">
+                <!-- LOGIN SECTION -->
+                <div id="section-login">
+                    <!-- Role Toggle -->
+                    <div class="flex bg-background-slate p-1 rounded-nexus mb-8">
+                        <button id="toggle-student" class="flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus bg-white shadow-sm text-primary-navy" onclick="setLoginRole('student')">Student Access</button>
+                        <button id="toggle-staff" class="flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus text-text-secondary" onclick="setLoginRole('staff')">Staff Portal</button>
+                    </div>
+
+                    <form id="login-form" class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="login-email">Institutional Email</label>
+                            <input class="block w-full px-4 py-3 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all" 
+                                   id="login-email" type="email" placeholder="username@nexus.dev" required />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="login-password">Security Key</label>
+                            <input class="block w-full px-4 py-3 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all" 
+                                   id="login-password" type="password" placeholder="••••••••••••" required />
+                        </div>
+                        <div class="pt-4">
+                            <button class="w-full bg-primary-navy text-white py-4 px-6 rounded-nexus font-semibold text-sm tracking-wide hover:bg-opacity-90 active:scale-[0.98] transition-all duration-200" type="submit">
+                                Authorize Access
+                            </button>
+                            <p id="login-error" class="hidden text-error-red text-[12px] font-medium text-center mt-4">Invalid credentials</p>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- REGISTER SECTION -->
+                <div id="section-register" class="hidden">
+                    <form id="register-form" class="space-y-5">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="reg-name">Full Name</label>
+                            <input class="block w-full px-4 py-2.5 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all" 
+                                   id="reg-name" type="text" placeholder="John Doe" required />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="reg-email">Institutional Email</label>
+                            <input class="block w-full px-4 py-2.5 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all" 
+                                   id="reg-email" type="email" placeholder="name@nexus.dev" required />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="reg-password">Security Key</label>
+                            <input class="block w-full px-4 py-2.5 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all" 
+                                   id="reg-password" type="password" placeholder="Min. 8 characters" required />
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary" for="reg-role">Designated Role</label>
+                            <select id="reg-role" class="block w-full px-4 py-2.5 bg-background-slate border border-border-gray rounded-nexus text-text-dark text-sm focus:ring-2 focus:ring-accent-blue/20 focus:border-accent-blue outline-none transition-all">
+                                <option value="student">Student</option>
+                                <option value="lab_incharge">Lab Incharge</option>
+                                <option value="hod">HOD</option>
+                                <option value="principal">Principal</option>
+                                <option value="librarian">Librarian</option>
+                                <option value="accounts">Accounts</option>
+                            </select>
+                        </div>
+                        <div class="pt-4">
+                            <button class="w-full bg-primary-navy text-white py-4 px-6 rounded-nexus font-semibold text-sm tracking-wide hover:bg-opacity-90 active:scale-[0.98] transition-all duration-200" type="submit">
+                                Initialize Protocol
+                            </button>
+                            <p id="reg-error" class="hidden text-error-red text-[12px] font-medium text-center mt-4"></p>
+                            <p id="reg-success" class="hidden text-success-green text-[12px] font-medium text-center mt-4">Account created! Please login.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center px-4">
+            <p class="text-[10px] text-white/40 uppercase tracking-[0.25em] font-medium leading-relaxed">
+                © 2024 Nexus Institutional Ledger. All Rights Reserved.<br/>
+                Secure Environment • Authorized Personnel Only
+            </p>
+        </div>
+    </main>
+
+    <script>
+        let currentLoginRole = 'student';
+
+        function switchTab(tab) {
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
+            const loginSec = document.getElementById('section-login');
+            const registerSec = document.getElementById('section-register');
+
+            if (tab === 'login') {
+                loginTab.className = 'flex-1 py-4 text-sm uppercase tracking-widest tab-active';
+                registerTab.className = 'flex-1 py-4 text-sm uppercase tracking-widest tab-inactive';
+                loginSec.classList.remove('hidden');
+                registerSec.classList.add('hidden');
+            } else {
+                loginTab.className = 'flex-1 py-4 text-sm uppercase tracking-widest tab-inactive';
+                registerTab.className = 'flex-1 py-4 text-sm uppercase tracking-widest tab-active';
+                loginSec.classList.add('hidden');
+                registerSec.classList.remove('hidden');
+            }
+        }
+
+        function setLoginRole(role) {
+            currentLoginRole = role;
+            const studentBtn = document.getElementById('toggle-student');
+            const staffBtn = document.getElementById('toggle-staff');
+
+            if (role === 'student') {
+                studentBtn.className = 'flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus bg-white shadow-sm text-primary-navy';
+                staffBtn.className = 'flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus text-text-secondary';
+            } else {
+                staffBtn.className = 'flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus bg-white shadow-sm text-primary-navy';
+                studentBtn.className = 'flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-nexus text-text-secondary';
+            }
+        }
+
+        // Login Handler
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorMsg = document.getElementById('login-error');
+            errorMsg.classList.add('hidden');
+
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const res = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Write to BOTH so incognito reloads still work
+                    localStorage.setItem('nexus_token', data.token);
+                    localStorage.setItem('nexus_user', JSON.stringify(data.user));
+                    sessionStorage.setItem('nexus_token', data.token);
+                    sessionStorage.setItem('nexus_user', JSON.stringify(data.user));
+                    
+                    // Route based on role
+                    if (data.user.role === 'student') {
+                        window.location.href = '/dashboard';
+                    } else if (data.user.role === 'librarian') {
+                        window.location.href = '/librarian';
+                    } else {
+                        window.location.href = '/staff'; 
+                    }
+                } else {
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Connection error';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // Register Handler
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorMsg = document.getElementById('reg-error');
+            const successMsg = document.getElementById('reg-success');
+            errorMsg.classList.add('hidden');
+            successMsg.classList.add('hidden');
+
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const role = document.getElementById('reg-role').value;
+
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    successMsg.classList.remove('hidden');
+                    setTimeout(() => switchTab('login'), 2000);
+                } else {
+                    errorMsg.textContent = data.error || 'Registration failed';
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Connection error';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

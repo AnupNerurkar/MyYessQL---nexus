@@ -1,0 +1,10 @@
+node_modules/
+.env
+uploads/
+scratch/
+*.db
+*.exe
+.DS_Store
+dist/
+build/
+*.log

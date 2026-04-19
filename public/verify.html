@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Verification Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0A1628',
+                        accent: '#2563EB',
+                        success: '#16A34A',
+                        danger: '#DC2626',
+                        bg: '#F8FAFC',
+                        surface: '#FFFFFF',
+                        border: '#E2E8F0',
+                        text: '#0F172A'
+                    },
+                    borderRadius: {
+                        'nexus': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .success-bg { background: linear-gradient(135deg, #16A34A 0%, #15803D 100%); }
+    </style>
+</head>
+<body class="bg-bg min-h-screen flex items-center justify-center p-6">
+
+    <div id="loading" class="text-navy font-semibold animate-pulse">Establishing secure connection to ledger...</div>
+
+    <div id="content" class="hidden w-full max-w-md">
+        <!-- Valid State -->
+        <div id="valid-card" class="hidden bg-surface rounded-nexus border border-border shadow-xl overflow-hidden">
+            <div class="success-bg p-8 text-center text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">Authentic Document</h1>
+                <p class="text-white/80 text-sm mt-1">Verified by Nexus University Registry</p>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-text/40 mb-1">Holder Name</p>
+                    <p id="student-name" class="text-lg font-bold text-navy"></p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-text/40 mb-1">Document Type</p>
+                        <p id="doc-type" class="text-sm font-semibold text-accent uppercase"></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-text/40 mb-1">Issued On</p>
+                        <p id="issue-date" class="text-sm font-semibold text-navy"></p>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-border">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-text/40 mb-1">Blockchain Hash / Certificate ID</p>
+                    <p id="cert-id" class="text-xs font-mono text-text/60 break-all"></p>
+                </div>
+
+                <div class="bg-slate-50 rounded-nexus p-4 flex items-start gap-3">
+                    <svg class="w-4 h-4 text-success mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <p class="text-[11px] text-text/60 leading-relaxed">
+                        This document is a certified digital record of Nexus University. Its integrity has been verified against our central ledger.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invalid State -->
+        <div id="invalid-card" class="hidden bg-surface rounded-nexus border border-border shadow-xl overflow-hidden">
+            <div class="bg-danger p-8 text-center text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">Invalid Record</h1>
+                <p class="text-white/80 text-sm mt-1">Verification Failure</p>
+            </div>
+            <div class="p-8 text-center space-y-4">
+                <p class="text-sm text-text/60 font-medium">The certificate ID or QR link you followed does not match any official record in our database.</p>
+                <div class="pt-4 border-t border-border">
+                    <a href="/" class="text-xs font-bold text-accent hover:underline uppercase tracking-widest">Return to Portal</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        // Supports both ?id=ID and /verify/ID if rewritten, but for now we use query or path
+        const pathParts = window.location.pathname.split('/');
+        const certId = pathParts[pathParts.length - 1] !== 'verify.html' ? pathParts[pathParts.length - 1] : urlParams.get('id');
+
+        async function verify() {
+            if (!certId) {
+                showInvalid();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/certificates/verify/${certId}`);
+                const data = await res.json();
+
+                if (data.valid) {
+                    document.getElementById('student-name').textContent = data.student_name;
+                    document.getElementById('doc-type').textContent = data.type === 'clearance' ? 'No Dues Certificate' : 'Academic Transcript';
+                    document.getElementById('issue-date').textContent = new Date(data.issued_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    document.getElementById('cert-id').textContent = data.certificate_id;
+                    showValid();
+                } else {
+                    showInvalid();
+                }
+            } catch (e) {
+                showInvalid();
+            }
+        }
+
+        function showValid() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('valid-card').classList.remove('hidden');
+        }
+
+        function showInvalid() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('content').classList.remove('hidden');
+            document.getElementById('invalid-card').classList.remove('hidden');
+        }
+
+        verify();
+    </script>
+</body>
+</html>

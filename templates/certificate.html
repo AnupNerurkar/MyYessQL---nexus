@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+
+        .certificate-container {
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+            border: 15px solid #0A1628;
+            background: white;
+        }
+
+        .inner-border {
+            border: 2px solid #0A1628;
+            height: 100%;
+            padding: 10mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .university-name {
+            font-family: 'Libre+Baskerville', serif;
+            font-size: 32px;
+            font-weight: bold;
+            color: #0A1628;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            letter-spacing: 4px;
+            color: #64748B;
+            font-weight: 700;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-family: 'Libre+Baskerville', serif;
+            font-size: 28px;
+            font-weight: bold;
+            color: #0A1628;
+            margin-bottom: 40px;
+            text-decoration: underline;
+            text-underline-offset: 10px;
+        }
+
+        .content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #1E293B;
+            margin-bottom: 40px;
+            max-width: 90%;
+        }
+
+        .student-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0A1628;
+            display: block;
+            margin: 15px 0;
+            text-transform: uppercase;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            margin-bottom: 40px;
+            text-align: left;
+            padding: 0 40px;
+        }
+
+        .detail-item {
+            font-size: 14px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #64748B;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #0A1628;
+            margin-top: 5px;
+        }
+
+        .clearance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 50px;
+        }
+
+        .clearance-table th, .clearance-table td {
+            border: 1px solid #E2E8F0;
+            padding: 12px;
+            font-size: 13px;
+        }
+
+        .clearance-table th {
+            background: #F8FAFC;
+            font-weight: bold;
+            color: #0A1628;
+            text-transform: uppercase;
+        }
+
+        .status-cleared {
+            color: #16A34A;
+            font-weight: bold;
+        }
+
+        .footer-metadata {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: auto;
+            padding: 0 40px;
+        }
+
+        .qr-section {
+            text-align: left;
+        }
+
+        .qr-code {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 5px;
+        }
+
+        .cert-id {
+            font-family: monospace;
+            font-size: 11px;
+            color: #64748B;
+        }
+
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 30px;
+            padding: 0 40px;
+        }
+
+        .sig-block {
+            text-align: center;
+            width: 150px;
+        }
+
+        .sig-line {
+            border-top: 1px solid #0A1628;
+            margin-bottom: 10px;
+        }
+
+        .sig-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #0A1628;
+            text-transform: uppercase;
+        }
+
+        .seal-placeholder {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #CBD5E1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #94A3B8;
+            margin: 0 auto 10px;
+        }
+
+        .digital-note {
+            font-size: 9px;
+            color: #94A3B8;
+            font-style: italic;
+            margin-top: 20px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 80px;
+            color: rgba(10, 22, 40, 0.03);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <div class="watermark">VERIFIED BY NEXUS</div>
+        <div class="inner-border">
+            <div class="header">
+                <div class="university-name">Nexus University</div>
+                <div class="subtitle">Institutional Clearance Authority</div>
+            </div>
+
+            <div class="title">NO DUES CERTIFICATE</div>
+
+            <div class="content">
+                This is to certify that
+                <span class="student-name">{{studentName}}</span>
+                bearing Roll Number <strong>{{rollNumber}}</strong> of the Department of <strong>{{department}}</strong> 
+                enrolled in the <strong>{{programName}}</strong> program, has successfully fulfilled all 
+                institutional obligations and cleared all outstanding dues.
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Academic Year</div>
+                    <div class="detail-value">{{academicYear}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Date of Issue</div>
+                    <div class="detail-value">{{issueDate}}</div>
+                </div>
+            </div>
+
+            <table class="clearance-table">
+                <thead>
+                    <tr>
+                        <th>Department / Section</th>
+                        <th>Status</th>
+                        <th>Cleared On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Library</td>
+                        <td class="status-cleared">CLEARED</td>
+                        <td>{{clearanceDate}}</td>
+                    </tr>
+                    <tr>
+                        <td>Laboratories</td>
+                        <td class="status-cleared">CLEARED</td>
+                        <td>{{clearanceDate}}</td>
+                    </tr>
+                    <tr>
+                        <td>Accounts Section</td>
+                        <td class="status-cleared">CLEARED</td>
+                        <td>{{clearanceDate}}</td>
+                    </tr>
+                    <tr>
+                        <td>Examination Cell</td>
+                        <td class="status-cleared">CLEARED</td>
+                        <td>{{clearanceDate}}</td>
+                    </tr>
+                    {{#if hostelCleared}}
+                    <tr>
+                        <td>Hostel / Residence</td>
+                        <td class="status-cleared">CLEARED</td>
+                        <td>{{clearanceDate}}</td>
+                    </tr>
+                    {{/if}}
+                </tbody>
+            </table>
+
+            <div class="signatures">
+                <div class="sig-block">
+                    <div class="seal-placeholder">OFFICIAL SEAL</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Authorized Officer</div>
+                </div>
+                <div class="sig-block">
+                    <img src="{{principalSig}}" style="height: 60px; margin-bottom: 5px; {{#unless principalSig}}visibility: hidden;{{/unless}}" />
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Principal</div>
+                </div>
+            </div>
+
+            <div class="footer-metadata">
+                <div class="qr-section">
+                    <img src="{{qrCode}}" class="qr-code" />
+                    <div class="cert-id">ID: {{certificateId}}</div>
+                    <div style="font-size: 9px; color: #64748B; margin-top: 4px;">Verify at: {{verifyUrl}}</div>
+                </div>
+                <div class="digital-note">
+                    This document is digitally generated and does not require a physical signature.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

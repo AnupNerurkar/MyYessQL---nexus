@@ -1,0 +1,74 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../db');
+const { authenticate } = require('../middleware/auth');
+const Stripe = require('stripe');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+/**
+ * 1. Create a Payment Intent
+ * This is called by the frontend when the student clicks "Pay Now"
+ */
+router.post('/create-intent/:dueId', authenticate, async (req, res) => {
+    const { dueId } = req.params;
+    const studentId = req.user.id;
+
+    try {
+        // Fetch the due from DB to ensure it exists and is unpaid
+        const due = db.prepare("SELECT * FROM dues WHERE id = ? AND student_id = ? AND status = 'unpaid'").get(dueId, studentId);
+        
+        if (!due) {
+            return res.status(404).json({ error: 'Unpaid due not found' });
+        }
+
+        // Create Stripe Payment Intent
+        // Note: Stripe amounts are in cents/paise (multiply by 100)
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(due.amount * 100), 
+            currency: 'inr',
+            description: `Nexus Clearance Due: ${due.description} (${due.department})`,
+            metadata: {
+                student_id: studentId.toString(),
+                due_id: dueId.toString()
+            },
+            automatic_payment_methods: {
+                enabled: true,
+            },
+        });
+
+        res.json({
+            clientSecret: paymentIntent.client_secret,
+            publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+        });
+
+    } catch (err) {
+        console.error('Stripe Intent Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * 2. Get Student Receipts
+ */
+router.get('/receipts', authenticate, (req, res) => {
+    const studentId = req.user.id;
+    
+    const query = `
+        SELECT 
+            p.id as payment_id,
+            p.amount,
+            p.transaction_ref,
+            p.paid_at,
+            d.department,
+            d.description
+        FROM payments p
+        JOIN dues d ON p.due_id = d.id
+        WHERE p.student_id = ?
+        ORDER BY p.paid_at DESC
+    `;
+    
+    const receipts = db.prepare(query).all(studentId);
+    res.json(receipts);
+});
+
+module.exports = router;

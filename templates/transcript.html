@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: white;
+            color: #1E293B;
+        }
+
+        .transcript-container {
+            width: 210mm;
+            height: 297mm;
+            padding: 15mm;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid #0A1628;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .uni-info {
+            text-align: left;
+        }
+
+        .uni-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0A1628;
+            text-transform: uppercase;
+        }
+
+        .uni-sub {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #64748B;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .doc-title {
+            text-align: right;
+        }
+
+        .doc-title h1 {
+            font-size: 20px;
+            margin: 0;
+            color: #0A1628;
+        }
+
+        .doc-title p {
+            font-size: 10px;
+            margin: 5px 0 0;
+            color: #64748B;
+            font-weight: bold;
+        }
+
+        .student-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            background: #F8FAFC;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .info-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #64748B;
+            width: 100px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .semester-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .semester-table th {
+            background: #0A1628;
+            color: white;
+            font-size: 10px;
+            padding: 8px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .semester-table td {
+            border-bottom: 1px solid #E2E8F0;
+            padding: 8px;
+            font-size: 11px;
+        }
+
+        .semester-header {
+            background: #F1F5F9;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #0A1628;
+        }
+
+        .summary-box {
+            display: flex;
+            justify-content: flex-end;
+            gap: 40px;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 2px solid #0A1628;
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #64748B;
+            text-transform: uppercase;
+        }
+
+        .summary-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0A1628;
+        }
+
+        .footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 50px;
+        }
+
+        .verification {
+            font-size: 9px;
+            color: #94A3B8;
+            max-width: 300px;
+        }
+
+        .sig-block {
+            text-align: center;
+        }
+
+        .sig-line {
+            border-top: 1px solid #0A1628;
+            width: 200px;
+            margin-bottom: 8px;
+        }
+
+        .sig-label {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(10, 22, 40, 0.02);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="transcript-container">
+        <div class="watermark">OFFICIAL TRANSCRIPT</div>
+        
+        <header class="header">
+            <div class="uni-info">
+                <div class="uni-name">Nexus University</div>
+                <div class="uni-sub">Office of the Controller of Examinations</div>
+            </div>
+            <div class="doc-title">
+                <h1>OFFICIAL TRANSCRIPT</h1>
+                <p>Consolidated Statement of Grades</p>
+            </div>
+        </header>
+
+        <div class="student-box">
+            <div class="column">
+                <div class="info-row">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">{{studentName}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Roll Number</div>
+                    <div class="info-value">{{rollNumber}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Program</div>
+                    <div class="info-value">{{programName}}</div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="info-row">
+                    <div class="info-label">Department</div>
+                    <div class="info-value">{{department}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Batch</div>
+                    <div class="info-value">{{batch}}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Transcript ID</div>
+                    <div class="info-value">{{transcriptId}}</div>
+                </div>
+            </div>
+        </div>
+
+        {{#each semesters}}
+        <div class="semester-header">Semester {{semesterNumber}}</div>
+        <table class="semester-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%">Code</th>
+                    <th style="width: 50%">Subject Name</th>
+                    <th style="width: 10%">Credits</th>
+                    <th style="width: 10%">Grade</th>
+                    <th style="width: 15%">Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each courses}}
+                <tr>
+                    <td>{{subject_code}}</td>
+                    <td>{{subject_name}}</td>
+                    <td>{{credits}}</td>
+                    <td>{{grade}}</td>
+                    <td>{{result}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        {{/each}}
+
+        <div class="summary-box">
+            <div class="summary-item">
+                <div class="summary-label">Total Credits Earned</div>
+                <div class="summary-value">{{totalCredits}}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Cumulative GPA</div>
+                <div class="summary-value">{{cgpa}}</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-label">Final Classification</div>
+                <div class="summary-value">{{classification}}</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="verification">
+                <p>Date of Issue: {{issueDate}}</p>
+                <p>Verify this document at: {{verifyUrl}}</p>
+                <p style="margin-top: 10px;">This transcript is an official institutional document issued by Nexus University. Any alteration renders this document invalid.</p>
+            </div>
+            <div class="sig-block">
+                <div style="height: 50px;"></div> <!-- Sign image space -->
+                <div class="sig-line"></div>
+                <div class="sig-label">Controller of Examinations</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
